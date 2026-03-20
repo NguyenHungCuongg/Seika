@@ -1,0 +1,80 @@
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / Editor
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Dependency directories
+node_modules/
+
+# Build / cache / coverage
+dist/
+build/
+out/
+target/
+coverage/
+.cache/
+.turbo/
+.parcel-cache/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Java / JVM
+*.class
+*.jar
+*.war
+*.ear
+
+# .NET
+bin/
+obj/
+
+# Test artifacts (keep source tests, ignore generated outputs)
+test-results/
+test-output/
+playwright-report/
+
+# AI / assistant context and local prompts (generated or local-only)
+.ai/
+.copilot/
+.copilot-cache/
+.cursor/
+.windsurf/
+.roo/
+.github/copilot-instructions.md
+*.prompt.md
+*.instructions.md
+*.agent.md
+
+# Local runtime files
+*.pid
+*.seed
+*.tmp
+*.temp
