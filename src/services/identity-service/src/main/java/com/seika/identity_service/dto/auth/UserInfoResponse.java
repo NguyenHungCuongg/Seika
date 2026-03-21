@@ -1,14 +1,17 @@
 package com.seika.identity_service.dto.auth;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
 @Getter
 @Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserInfoResponse {
-    private String id;
-    private String username;
-    private Set<String> roles;
+    String id;
+    String username;
+    Set<String> roles;
 }
