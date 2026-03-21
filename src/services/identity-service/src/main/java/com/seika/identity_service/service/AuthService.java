@@ -29,6 +29,7 @@ public class AuthService {
     public static final String ROLE_TEACHER = "TEACHER";
     public static final Set<String> SELF_SELECTABLE_ROLES = Set.of(ROLE_STUDENT, ROLE_TEACHER);
 
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
