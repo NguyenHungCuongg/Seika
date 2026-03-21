@@ -1,3 +1,24 @@
 spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:profile-service/.env[.properties]
+      - optional:file:src/services/profile-service/.env[.properties]
   application:
     name: profile-service
+
+  datasource:
+    url: ${PROFILE_DB_URL}
+    username: ${PROFILE_DB_USERNAME}
+    password: ${PROFILE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  server:
+    port: ${SERVER_PORT:8082}
