@@ -7,6 +7,8 @@ import com.seika.identity_service.dto.auth.UserInfoResponse;
 import com.seika.identity_service.dto.user_profile.UserProfileRequest;
 import com.seika.identity_service.entity.Role;
 import com.seika.identity_service.entity.User;
+import com.seika.identity_service.mapper.AuthMapper;
+import com.seika.identity_service.mapper.ProfileMapper;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import com.seika.identity_service.repository.httpclient.ProfileClient;
@@ -24,9 +26,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +47,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final ProfileClient profileClient;
+    private final ProfileMapper profileMapper;
+    private final AuthMapper authMapper;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -55,37 +59,27 @@ public class AuthService {
 
         Role selectedRole = resolveSelfSelectableRole(request.getRole());
 
-        User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .roles(Set.of(selectedRole))
-                .build();
-
-        userRepository.save(user);
+        User user = authMapper.toUser(request, passwordEncoder.encode(request.getPassword()), Set.of(selectedRole));
+        User savedUser = userRepository.save(user);
         log.info("User registered with username={}, role={}", user.getUsername(), selectedRole.getName());
 
-        UserProfileRequest userProfileRequest = mapToUserProfileRequest(request, user.getId());
+        UserProfileRequest userProfileRequest = profileMapper.toUserProfileRequest(request, savedUser.getId());
         try {
             profileClient.createProfile(userProfileRequest);
-            log.info("Profile created for userId={}", user.getId());
+            log.info("Profile created for userId={}", savedUser.getId());
         } catch (FeignException exception) {
-            log.error("Profile creation failed for userId={} with status={}", user.getId(), exception.status());
+            log.error("Profile creation failed for userId={} with status={}", savedUser.getId(), exception.status());
             throw new IllegalStateException("Could not create user profile. Registration rolled back.");
         }
         
-        List<GrantedAuthority> authorities = user.getRoles().stream()
+        List<GrantedAuthority> authorities = savedUser.getRoles().stream()
             .map(Role::getName)
             .map(roleName -> new SimpleGrantedAuthority("ROLE_" + roleName))
             .collect(Collectors.toList());
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(savedUser.getUsername(), null, authorities);
         String accessToken = jwtService.generateAccessToken(authentication);
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .tokenType("Bearer")
-                .username(user.getUsername())
-                .roles(extractRoleNames(user.getRoles()))
-                .build();
+        return authMapper.toAuthResponse(savedUser, accessToken);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -97,13 +91,8 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(authentication);
-        log.info("User logged in: username={}, roles={}", user.getUsername(), extractRoleNames(user.getRoles()));
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .tokenType("Bearer")
-                .username(user.getUsername())
-                .roles(extractRoleNames(user.getRoles()))
-                .build();
+        log.info("User logged in: username={}, roles={}", user.getUsername(), authMapper.mapRoleNames(user.getRoles()));
+        return authMapper.toAuthResponse(user, accessToken);
     }
 
     public UserInfoResponse me() {
@@ -111,18 +100,7 @@ public class AuthService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return UserInfoResponse.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .roles(extractRoleNames(user.getRoles()))
-                .build();
-    }
-
-    private Set<String> extractRoleNames(Set<Role> roles) {
-        if (roles == null) {
-            return Set.of();
-        }
-        return roles.stream().map(Role::getName).collect(Collectors.toSet());
+        return authMapper.toUserInfoResponse(user);
     }
 
     private Role resolveSelfSelectableRole(String rawRole) {
@@ -134,15 +112,5 @@ public class AuthService {
 
         return roleRepository.findById(normalizedRole)
                 .orElseThrow(() -> new IllegalStateException("Role not found: " + normalizedRole));
-    }
-
-    private UserProfileRequest mapToUserProfileRequest(RegisterRequest request, String userId) {
-        UserProfileRequest userProfileRequest = new UserProfileRequest();
-        userProfileRequest.setUserId(userId);
-        userProfileRequest.setFullName(request.getFullName());
-        userProfileRequest.setGender(request.getGender());
-        userProfileRequest.setDateOfBirth(request.getDateOfBirth());
-        userProfileRequest.setProfilePictureUrl(request.getProfilePictureUrl());
-        return userProfileRequest;
     }
 }
