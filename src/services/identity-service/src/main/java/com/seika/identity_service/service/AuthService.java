@@ -9,6 +9,8 @@ import com.seika.identity_service.entity.User;
 import com.seika.identity_service.repository.RoleRepository;
 import com.seika.identity_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     public static final String ROLE_STUDENT = "STUDENT";
@@ -39,6 +42,7 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
+            log.warn("Registration failed: Username {} already exists", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -51,7 +55,7 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
-
+        log.info("User registered with username={}, role={}", user.getUsername(), selectedRole.getName());
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
@@ -74,6 +78,7 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(authentication);
+        log.info("User logged in: username={}, roles={}", user.getUsername(), extractRoleNames(user.getRoles()));
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .tokenType("Bearer")
@@ -104,7 +109,8 @@ public class AuthService {
     private Role resolveSelfSelectableRole(String rawRole) {
         String normalizedRole = rawRole == null ? "" : rawRole.trim().toUpperCase(Locale.ROOT);
         if (!SELF_SELECTABLE_ROLES.contains(normalizedRole)) {
-                throw new IllegalArgumentException("Only STUDENT or TEACHER can be selected during registration");
+            log.warn("Registration failed: Invalid role attempted - {}", rawRole);
+            throw new IllegalArgumentException("Only STUDENT or TEACHER can be selected during registration");
         }
 
         return roleRepository.findById(normalizedRole)
