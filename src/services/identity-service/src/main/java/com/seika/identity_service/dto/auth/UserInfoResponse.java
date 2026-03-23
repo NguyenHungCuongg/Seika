@@ -1,14 +1,14 @@
 package com.seika.identity_service.dto.auth;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Set;
 
 @Getter
-@Builder
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserInfoResponse {
     String id;
