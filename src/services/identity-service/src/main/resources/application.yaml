@@ -26,3 +26,6 @@ jwt:
   issuer: seika-identity-service
   secret: ${JWT_SECRET}
   access-token-expiration-minutes: ${JWT_ACCESS_TOKEN_EXPIRATION_MINUTES:60}
+app:
+  services:
+    profile: ${PROFILE_SERVICE_URL:http://localhost:8082}

@@ -1,15 +1,18 @@
 package com.seika.identity_service.dto.auth;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
     @NotBlank
-    private String username;
+    String username;
 
     @NotBlank
-    private String password;
+    String password;
 }

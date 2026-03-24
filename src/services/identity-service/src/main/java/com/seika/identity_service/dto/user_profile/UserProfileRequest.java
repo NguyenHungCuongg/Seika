@@ -1,9 +1,8 @@
-package com.seika.identity_service.dto.auth;
+package com.seika.identity_service.dto.user_profile;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,16 +13,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RegisterRequest {
+public class UserProfileRequest {
     @NotBlank
-    String username;
-
-    @NotBlank
-    String password;
-
-    @NotBlank
-    @Pattern(regexp = "(?i)STUDENT|TEACHER", message = "role must be STUDENT or TEACHER")
-    String role;
+    String userId;
 
     @NotBlank
     String fullName;

@@ -3,6 +3,7 @@ package com.seika.identity_service.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.Date;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class JwtService {
 
     private final SecretKey secretKey;
@@ -33,6 +35,7 @@ public class JwtService {
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
         this.issuer = issuer;
         this.accessTokenExpirationMinutes = accessTokenExpirationMinutes;
+        log.info("JWT service initialized: issuer={}, token-expiration={}min", issuer, accessTokenExpirationMinutes);
     }
 
     public String generateAccessToken(Authentication authentication) {
@@ -53,7 +56,8 @@ public class JwtService {
         try {
             parseClaims(token);
             return true;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("Token validation failed: {}", e.getClass().getSimpleName());
             return false;
         }
     }
