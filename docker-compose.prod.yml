@@ -537,6 +537,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE}
       CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     depends_on:
       config-service:
         condition: service_healthy
