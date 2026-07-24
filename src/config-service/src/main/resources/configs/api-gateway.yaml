@@ -11,6 +11,12 @@ spring:
     context-propagation: auto
   cloud:
     gateway:
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 50
+            redis-rate-limiter.burstCapacity: 100
+            key-resolver: "#{@userKeyResolver}"
       server:
         webflux:
           routes:
@@ -68,6 +74,12 @@ spring:
               uri: lb://IDENTITY-SERVICE
               predicates:
                 - Path=/api/auth/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    key-resolver: "#{@ipKeyResolver}"
             - id: identity-route
               uri: lb://IDENTITY-SERVICE
               predicates:

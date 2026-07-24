@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "wallet-service")
+@FeignClient(name = "wallet-service", fallback = WalletClientFallback.class)
 public interface WalletClient {
     @GetMapping("/api/wallet/configs")
     List<SystemConfigDTO> getConfigs();

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "wallet-service")
+@FeignClient(name = "wallet-service", fallback = WalletClientFallback.class)
 public interface WalletClient {
     @PostMapping("/api/wallet/withdraw")
     Map<String, String> spend(@RequestHeader("Authorization") String token,
