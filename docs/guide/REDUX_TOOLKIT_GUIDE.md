@@ -104,11 +104,11 @@ export type AppDispatch = typeof store.dispatch;
 
 **Ba type được suy ra tự động:**
 
-| Type | Vai trò |
-| --- | --- |
-| `RootState` | Toàn bộ state shape của store. Dùng để typed `useSelector`. |
-| `AppDispatch` | Dispatch đã được mở rộng bởi thunk middleware. Dùng để typed `useDispatch`. |
-| `AppStore` | Kiểu của chính đối tượng `store`. Ít dùng trong component, chủ yếu cho test. |
+| Type          | Vai trò                                                                      |
+| ------------- | ---------------------------------------------------------------------------- |
+| `RootState`   | Toàn bộ state shape của store. Dùng để typed `useSelector`.                  |
+| `AppDispatch` | Dispatch đã được mở rộng bởi thunk middleware. Dùng để typed `useDispatch`.  |
+| `AppStore`    | Kiểu của chính đối tượng `store`. Ít dùng trong component, chủ yếu cho test. |
 
 **Tại sao lại không có middleware tuỳ biếnh?** Vì:
 
@@ -124,7 +124,11 @@ export type AppDispatch = typeof store.dispatch;
 
 ```ts
 // src/store/hooks.ts
-import { useDispatch, useSelector, type TypedUseSelectorHook } from "react-redux";
+import {
+  useDispatch,
+  useSelector,
+  type TypedUseSelectorHook,
+} from "react-redux";
 import type { AppDispatch, RootState } from "./index";
 
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -218,28 +222,28 @@ const initialState: AuthState = {
 
 **Quy tắc lưu trữ:**
 
-| `rememberMe` | Nơi lưu |
-| --- | --- |
-| `true` (khi login) | `localStorage` (sống qua các tab / đóng mở trình duyệt) |
-| `false` (khi login) | `sessionStorage` (mất khi đóng tab) |
+| `rememberMe`        | Nơi lưu                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `true` (khi login)  | `localStorage` (sống qua các tab / đóng mở trình duyệt) |
+| `false` (khi login) | `sessionStorage` (mất khi đóng tab)                     |
 
 Mỗi lần ghi đều **xoá storage còn lại** để tránh hai bản song song.
 
 #### 4.1.3 Async thunks
 
-| Thunk | Tham số | Quy trình |
-| --- | --- | --- |
-| `login` | `{ credentials: LoginRequest; rememberMe: boolean }` | Gọi `authService.login` → set axios header → `persistAuth(auth, rememberMe)`. On reject trả về `getApiErrorMessage(error, "Login failed.")`. |
-| `register` | `RegisterRequest` | Tương tự `login` nhưng luôn `persistAuth(auth, true)`. |
+| Thunk      | Tham số                                              | Quy trình                                                                                                                                    |
+| ---------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `login`    | `{ credentials: LoginRequest; rememberMe: boolean }` | Gọi `authService.login` → set axios header → `persistAuth(auth, rememberMe)`. On reject trả về `getApiErrorMessage(error, "Login failed.")`. |
+| `register` | `RegisterRequest`                                    | Tương tự `login` nhưng luôn `persistAuth(auth, true)`.                                                                                       |
 
 Cả hai đều khai báo `{ rejectValue: string }` để `unwrap()` hoặc `state.auth.error` trả về chuỗi thân thiện (tiếng Việt fallback).
 
 #### 4.1.4 Sync reducers
 
-| Action | Công dụng |
-| --- | --- |
-| `logout` | Đặt state về `emptyAuthStorageState`, `setAuthToken(null)`, `clearPersistedAuth()`. |
-| `clearAuthError` | Đặt `error = null`, dùng khi user muốn thử lại sau lỗi. |
+| Action                    | Công dụng                                                                                                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `logout`                  | Đặt state về `emptyAuthStorageState`, `setAuthToken(null)`, `clearPersistedAuth()`.                                                                                                      |
+| `clearAuthError`          | Đặt `error = null`, dùng khi user muốn thử lại sau lỗi.                                                                                                                                  |
 | `setCredentials(payload)` | Overwrite state từ payload; set axios header; `persistAuth(..., true)`. Được **axios interceptor** gọi khi refresh token thành công (xem [§5.1](#51-clientts--axios--401-auto-refresh)). |
 
 #### 4.1.5 extraReducers
@@ -276,13 +280,18 @@ Chia rõ theo hai nguồn backend:
 
 ```ts
 // Pseudocode
-createAsyncThunk("userProfile/fetchCurrentUserProfile", async (_, { rejectWithValue }) => {
-  try {
-    const identity = await authService.me();              // /auth/me
-    const profile  = await userProfilesService.getByUserId(identity.id); // /profiles/{id}
-    return { identity, profile };
-  } catch (e) { return rejectWithValue(getApiErrorMessage(e, "Không tải được hồ sơ.")); }
-});
+createAsyncThunk(
+  "userProfile/fetchCurrentUserProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const identity = await authService.me(); // /auth/me
+      const profile = await userProfilesService.getByUserId(identity.id); // /profiles/{id}
+      return { identity, profile };
+    } catch (e) {
+      return rejectWithValue(getApiErrorMessage(e, "Không tải được hồ sơ."));
+    }
+  },
+);
 ```
 
 Trên `fulfilled`, cả hai phần được "trải" xuống state.
@@ -295,7 +304,10 @@ Trên `fulfilled`, cả hai phần được "trải" xuống state.
 builder
   .addCase(login.fulfilled, () => initialState)
   .addCase(register.fulfilled, () => initialState)
-  .addMatcher((action) => action.type === "auth/setCredentials", () => initialState);
+  .addMatcher(
+    (action) => action.type === "auth/setCredentials",
+    () => initialState,
+  );
 ```
 
 Mục đích: khi user A logout → user B login, profile cũ của A phải bị xoá ngay — không cần layout phải `dispatch(clearUserProfile)` thủ công.
@@ -322,12 +334,12 @@ File: `src/store/notificationSlice.ts`.
 
 #### 4.3.2 Bốn thunk
 
-| Thunk | Endpoint | Công dụng |
-| --- | --- | --- |
-| `fetchNotifications` | `GET /notifications/me?page=&size=` (size mặc định 50) | Load danh sách + tính lại `unreadCount` từ items. |
-| `fetchUnreadCount` | `GET /notifications/me/unread-count` | Cập nhật số badge nhanh. |
-| `markAsRead(id)` | `PATCH /notifications/{id}/read` | Lật `status: UNREAD → READ`, giảm `unreadCount` (sàn 0). |
-| `markAllAsRead()` | `PATCH /notifications/me/read-all` | Lật tất cả, đặt `unreadCount = 0`. |
+| Thunk                | Endpoint                                               | Công dụng                                                |
+| -------------------- | ------------------------------------------------------ | -------------------------------------------------------- |
+| `fetchNotifications` | `GET /notifications/me?page=&size=` (size mặc định 50) | Load danh sách + tính lại `unreadCount` từ items.        |
+| `fetchUnreadCount`   | `GET /notifications/me/unread-count`                   | Cập nhật số badge nhanh.                                 |
+| `markAsRead(id)`     | `PATCH /notifications/{id}/read`                       | Lật `status: UNREAD → READ`, giảm `unreadCount` (sàn 0). |
+| `markAllAsRead()`    | `PATCH /notifications/me/read-all`                     | Lật tất cả, đặt `unreadCount = 0`.                       |
 
 #### 4.3.3 Sync reducer `addNotification(payload)` — điểm vào của SSE
 
@@ -372,13 +384,13 @@ Một slice nhưng **nhiều cụm status/error** vì dashboard teacher render n
 
 #### 4.4.2 Năm thunk
 
-| Thunk | Mục đích |
-| --- | --- |
-| `fetchStatisticsOverview` | `statisticsService.fetchOverviewBundle()` — Promise.all 3 request parallel, có `.catch(() => null)` để một endpoint lỗi không kéo sập cả cụm. |
-| `fetchRevenue("month" \| "day")` | Biểu đồ doanh thu. |
-| `fetchTopProducts({ productType?, limit? })` | Bảng top sản phẩm (giới hạn 10 mặc định). |
-| `fetchStudents(limit?)` | Danh sách học viên. |
-| `fetchQuizAttempts(quizSetId)` | Drill-down cho 1 quiz, lưu vào `attemptsByQuizSet[quizSetId]` để mở modal. |
+| Thunk                                        | Mục đích                                                                                                                                      |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fetchStatisticsOverview`                    | `statisticsService.fetchOverviewBundle()` — Promise.all 3 request parallel, có `.catch(() => null)` để một endpoint lỗi không kéo sập cả cụm. |
+| `fetchRevenue("month" \| "day")`             | Biểu đồ doanh thu.                                                                                                                            |
+| `fetchTopProducts({ productType?, limit? })` | Bảng top sản phẩm (giới hạn 10 mặc định).                                                                                                     |
+| `fetchStudents(limit?)`                      | Danh sách học viên.                                                                                                                           |
+| `fetchQuizAttempts(quizSetId)`               | Drill-down cho 1 quiz, lưu vào `attemptsByQuizSet[quizSetId]` để mở modal.                                                                    |
 
 #### 4.4.3 `clearStatistics()` reducer
 
@@ -440,17 +452,28 @@ Viết (7):
 **`addMatcher` — cờ `mutationStatus`**:
 
 ```ts
-const WRITE_THUNKS = [lockAdminUser, unlockAdminUser, changeAdminUserRole,
-                      resetAdminUserPassword, approveAdminProduct,
-                      rejectAdminProduct, updateAdminConfig];
+const WRITE_THUNKS = [
+  lockAdminUser,
+  unlockAdminUser,
+  changeAdminUserRole,
+  resetAdminUserPassword,
+  approveAdminProduct,
+  rejectAdminProduct,
+  updateAdminConfig,
+];
 
 builder.addMatcher(
-  (action) => WRITE_THUNKS.some(t => t.rejected.match(action)) ||
-              WRITE_THUNKS.some(t => t.fulfilled.match(action)),
+  (action) =>
+    WRITE_THUNKS.some((t) => t.rejected.match(action)) ||
+    WRITE_THUNKS.some((t) => t.fulfilled.match(action)),
   (state, action) => {
-    state.mutationStatus = action.type.endsWith("/fulfilled") ? "succeeded" : "failed";
-    state.mutationError   = action.type.endsWith("/rejected")  ? action.payload ?? "Unknown" : null;
-  }
+    state.mutationStatus = action.type.endsWith("/fulfilled")
+      ? "succeeded"
+      : "failed";
+    state.mutationError = action.type.endsWith("/rejected")
+      ? (action.payload ?? "Unknown")
+      : null;
+  },
 );
 ```
 
@@ -500,7 +523,8 @@ File: `src/api/client.ts`. Đây là file **phức tạp nhất** ở tầng API
 #### 5.1.1 Khởi tạo
 
 ```ts
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080/api";
 export const apiClient = axios.create({ baseURL, timeout: 15000 });
 ```
 
@@ -508,7 +532,8 @@ export const apiClient = axios.create({ baseURL, timeout: 15000 });
 
 ```ts
 export function setAuthToken(token: string | null) {
-  if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
+  if (token)
+    apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
   else delete apiClient.defaults.headers.common.Authorization;
 }
 ```
@@ -527,12 +552,12 @@ export function setAuthToken(token: string | null) {
 ```ts
 // src/api/client.ts (rút gọn)
 let dispatchRef: ((action: unknown) => void) | null = null;
-let logoutActionCreator:  (() => unknown) | null = null;
+let logoutActionCreator: (() => unknown) | null = null;
 let setCredentialsActionCreator: ((payload: unknown) => unknown) | null = null;
 
 export const setupAuthInterceptor = (injection: {
-  dispatch:       (action: unknown) => void;
-  logout:         () => unknown;
+  dispatch: (action: unknown) => void;
+  logout: () => unknown;
   setCredentials: (payload: unknown) => unknown;
 }) => {
   dispatchRef = injection.dispatch;
@@ -559,7 +584,7 @@ createRoot(rootEl).render(
     <Provider store={store}>
       <App />
     </Provider>
-  </StrictMode>
+  </StrictMode>,
 );
 ```
 
@@ -574,10 +599,14 @@ apiClient.interceptors.response.use(
   (r) => r,
   async (error) => {
     const originalRequest = error.config as any;
-    if (error.response?.status !== 401 || originalRequest._retry) return Promise.reject(error);
+    if (error.response?.status !== 401 || originalRequest._retry)
+      return Promise.reject(error);
 
-    const refreshToken = getStoredRefreshToken();          // đọc thẳng localStorage
-    if (!refreshToken) { forceLogout(); return Promise.reject(error); }
+    const refreshToken = getStoredRefreshToken(); // đọc thẳng localStorage
+    if (!refreshToken) {
+      forceLogout();
+      return Promise.reject(error);
+    }
 
     // === Có nhiều request lỗi 401 cùng lúc ===
     if (isRefreshing) {
@@ -585,9 +614,9 @@ apiClient.interceptors.response.use(
         failedQueue.push({
           resolve: (token) => {
             originalRequest.headers.Authorization = `Bearer ${token}`;
-            resolve(apiClient(originalRequest));            // retry
+            resolve(apiClient(originalRequest)); // retry
           },
-          reject:  (err) => reject(err),
+          reject: (err) => reject(err),
         });
       });
     }
@@ -595,19 +624,21 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
     try {
-      const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
+      const { data } = await axios.post(`${baseURL}/auth/refresh`, {
+        refreshToken,
+      });
       // ^^^ dùng raw axios.post, KHÔNG dùng apiClient, để không re-trigger interceptor
 
       const newToken = data.accessToken;
-      updateStoredAuth(data);                                // ghi lại storage
-      setAuthToken(newToken);                                // cập nhật header
-      dispatchRef!(setCredentialsActionCreator!(data));       // cập nhật Redux
-      processQueue(null, newToken);                          // resolve các request đang chờ
+      updateStoredAuth(data); // ghi lại storage
+      setAuthToken(newToken); // cập nhật header
+      dispatchRef!(setCredentialsActionCreator!(data)); // cập nhật Redux
+      processQueue(null, newToken); // resolve các request đang chờ
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      return apiClient(originalRequest);                     // retry request gốc
+      return apiClient(originalRequest); // retry request gốc
     } catch (refreshErr) {
-      processQueue(refreshErr, null);                        // reject mọi request chờ
-      forceLogout();                                         // xoá token, redirect /auth/login
+      processQueue(refreshErr, null); // reject mọi request chờ
+      forceLogout(); // xoá token, redirect /auth/login
       return Promise.reject(refreshErr);
     } finally {
       isRefreshing = false;
@@ -630,7 +661,7 @@ apiClient.interceptors.response.use(
 
 ```ts
 function forceLogout() {
-  removeStoredAuth();                 // xoá "seika.auth" ở cả hai storage
+  removeStoredAuth(); // xoá "seika.auth" ở cả hai storage
   setAuthToken(null);
   if (dispatchRef && logoutActionCreator) dispatchRef(logoutActionCreator());
   const path = window.location.pathname;
@@ -651,8 +682,13 @@ function forceLogout() {
 ```ts
 import { isAxiosError } from "axios";
 
-export const getApiErrorMessage = (error: unknown, fallback = "Something went wrong…") => {
-  if (isAxiosError<{ message?: string; error?: string; detail?: string }>(error)) {
+export const getApiErrorMessage = (
+  error: unknown,
+  fallback = "Something went wrong…",
+) => {
+  if (
+    isAxiosError<{ message?: string; error?: string; detail?: string }>(error)
+  ) {
     const p = error.response?.data;
     return p?.message ?? p?.error ?? p?.detail ?? fallback;
   }
@@ -666,7 +702,7 @@ export const getApiErrorMessage = (error: unknown, fallback = "Something went wr
 
 #### `adapters.ts`
 
-Hiện đang rất sơ khai — chỉ một hàm `toDateOnlyString(value: Date) => "YYYY-MM-DD"`. Được dành chỗ cho các transform snake_case → camelCase khi backend thay đổi naming, theo tinh thần tài liệu `API_ARCHITECTURE_&_GUIDELINES.md`.
+Hiện đang rất sơ khai — chỉ một hàm `toDateOnlyString(value: Date) => "YYYY-MM-DD"`. Được dành chỗ cho các transform snake*case → camelCase khi backend thay đổi naming, theo tinh thần tài liệu `API_ARCHITECTURE*&\_GUIDELINES.md`.
 
 #### `tokenUtils.ts`
 
@@ -690,40 +726,40 @@ Mỗi service là một object phẳng (`authService = { login, register, … }`
 
 #### Tổng hợp endpoint
 
-| Service | Endpoint | HTTP | Ghi chú |
-| --- | --- | --- | --- |
-| `authService.register` | `/auth/register` | POST | Trả `AuthResponse` |
-| `authService.login` | `/auth/login` | POST | |
-| `authService.refresh` | `/auth/refresh` | POST | Dùng raw axios (xem §5.1.4) |
-| `authService.jwtIntrospect` | `/auth/jwt-introspect` | POST | |
-| `authService.me` | `/auth/me` | GET | |
-| `userProfilesService.getByUserId(id)` | `/profiles/{id}` | GET | `encodeURIComponent` |
-| `flashcardsService.*` | `/flashcards` + sub-paths | POST/GET/PUT/DELETE | `/flashcards/buy`, `/complete`, `/search?key=…`, `/author/{userId}` |
-| `quizzesService.*` | `/quiz` + `/quiz-sets` | mọi verb | Trả `ApiResponse<T>` (giữ nguyên envelope) |
-| `walletService.getBalance` | `/wallet/balance` | GET | Defensive normalize về `{balance: number}` vì backend chưa chốt shape |
-| `walletService.getHistory` | `/wallet/history` | POST | |
-| `walletService.withdraw / deposit / cashOut / topUp` | `/wallet/{verb}` | POST | |
-| `walletService.getConfigs` | `/wallet/configs` | GET | Admin dùng |
-| `marketplaceApi.listProducts` | `/marketplace/products` | GET | |
-| `marketplaceApi.listMyProducts` | `/marketplace/products/my-products` | GET | |
-| `marketplaceApi.listInventory` | `/marketplace/inventory/my-items` | GET | |
-| `marketplaceApi.createOrder` | `/marketplace/orders` | POST | Body `{userId, items: OrderItemRequest[]}` |
-| `notificationsService.getAll` | `/notifications/me?page=&size=` | GET | Default page 0, size 10 |
-| `notificationsService.getUnreadCount` | `/notifications/me/unread-count` | GET | |
-| `notificationsService.markAsRead(id)` | `/notifications/{id}/read` | PATCH | |
-| `notificationsService.markAllAsRead` | `/notifications/me/read-all` | PATCH | |
-| `rewardsService.getStatus` | `/rewards/status?type=&itemId=` | GET | |
-| `teacherProfileService.getMine / getById` | `/profiles/teacher/me` + `/profiles/teacher/{userId}` | GET | |
-| `statisticsService.*` | `/quiz-sets/my/statistics`, `/flashcards/my/statistics`, `/marketplace/orders/seller/me/revenue?period=`, `/top-products`, `/students`, `/top-selling`, `/flashcards/{id}/students`, `/quiz-sets/{id}/attempts` | GET | `fetchOverviewBundle()` = Promise.all 3 endpoint |
-| `adminService.getDashboardStats` | `/admin/dashboard/stats` | GET | |
-| `adminService.listUsers(role, page, size)` | `/admin/users` | GET | Trả Spring `Page`, unwrap thủ công |
-| `adminService.lockUser` / `unlockUser` | `/admin/users/{id}/lock|unlock` | POST | |
-| `adminService.changeUserRole({id, role})` | `/admin/users/{id}/role` | PUT | |
-| `adminService.resetUserPassword` | `/admin/users/{id}/reset-password` | POST | |
-| `adminService.listPendingProducts(page, size)` | `/marketplace/admin/products/pending` | GET | |
-| `adminService.approveProduct / rejectProduct / hideProduct` | `/marketplace/admin/products/{id}/approve|reject|hide` | POST | `rejectProduct` cần body `{reason}` |
-| `adminService.listConfigs / updateConfig(key, {value})` | `/wallet/admin/configs` (+ `/{key}` cho PUT) | GET / PUT | |
-| `adminService.getRevenueStats / listTransactions` | `/wallet/admin/revenue-stats`, `/wallet/admin/transactions?type=` | GET | |
+| Service                                                     | Endpoint                                                                                                                                                                                                        | HTTP                | Ghi chú                                                               |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- | --------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `authService.register`                                      | `/auth/register`                                                                                                                                                                                                | POST                | Trả `AuthResponse`                                                    |
+| `authService.login`                                         | `/auth/login`                                                                                                                                                                                                   | POST                |                                                                       |
+| `authService.refresh`                                       | `/auth/refresh`                                                                                                                                                                                                 | POST                | Dùng raw axios (xem §5.1.4)                                           |
+| `authService.jwtIntrospect`                                 | `/auth/jwt-introspect`                                                                                                                                                                                          | POST                |                                                                       |
+| `authService.me`                                            | `/auth/me`                                                                                                                                                                                                      | GET                 |                                                                       |
+| `userProfilesService.getByUserId(id)`                       | `/profiles/{id}`                                                                                                                                                                                                | GET                 | `encodeURIComponent`                                                  |
+| `flashcardsService.*`                                       | `/flashcards` + sub-paths                                                                                                                                                                                       | POST/GET/PUT/DELETE | `/flashcards/buy`, `/complete`, `/search?key=…`, `/author/{userId}`   |
+| `quizzesService.*`                                          | `/quiz` + `/quiz-sets`                                                                                                                                                                                          | mọi verb            | Trả `ApiResponse<T>` (giữ nguyên envelope)                            |
+| `walletService.getBalance`                                  | `/wallet/balance`                                                                                                                                                                                               | GET                 | Defensive normalize về `{balance: number}` vì backend chưa chốt shape |
+| `walletService.getHistory`                                  | `/wallet/history`                                                                                                                                                                                               | POST                |                                                                       |
+| `walletService.withdraw / deposit / cashOut / topUp`        | `/wallet/{verb}`                                                                                                                                                                                                | POST                |                                                                       |
+| `walletService.getConfigs`                                  | `/wallet/configs`                                                                                                                                                                                               | GET                 | Admin dùng                                                            |
+| `marketplaceApi.listProducts`                               | `/marketplace/products`                                                                                                                                                                                         | GET                 |                                                                       |
+| `marketplaceApi.listMyProducts`                             | `/marketplace/products/my-products`                                                                                                                                                                             | GET                 |                                                                       |
+| `marketplaceApi.listInventory`                              | `/marketplace/inventory/my-items`                                                                                                                                                                               | GET                 |                                                                       |
+| `marketplaceApi.createOrder`                                | `/marketplace/orders`                                                                                                                                                                                           | POST                | Body `{userId, items: OrderItemRequest[]}`                            |
+| `notificationsService.getAll`                               | `/notifications/me?page=&size=`                                                                                                                                                                                 | GET                 | Default page 0, size 10                                               |
+| `notificationsService.getUnreadCount`                       | `/notifications/me/unread-count`                                                                                                                                                                                | GET                 |                                                                       |
+| `notificationsService.markAsRead(id)`                       | `/notifications/{id}/read`                                                                                                                                                                                      | PATCH               |                                                                       |
+| `notificationsService.markAllAsRead`                        | `/notifications/me/read-all`                                                                                                                                                                                    | PATCH               |                                                                       |
+| `rewardsService.getStatus`                                  | `/rewards/status?type=&itemId=`                                                                                                                                                                                 | GET                 |                                                                       |
+| `teacherProfileService.getMine / getById`                   | `/profiles/teacher/me` + `/profiles/teacher/{userId}`                                                                                                                                                           | GET                 |                                                                       |
+| `statisticsService.*`                                       | `/quiz-sets/my/statistics`, `/flashcards/my/statistics`, `/marketplace/orders/seller/me/revenue?period=`, `/top-products`, `/students`, `/top-selling`, `/flashcards/{id}/students`, `/quiz-sets/{id}/attempts` | GET                 | `fetchOverviewBundle()` = Promise.all 3 endpoint                      |
+| `adminService.getDashboardStats`                            | `/admin/dashboard/stats`                                                                                                                                                                                        | GET                 |                                                                       |
+| `adminService.listUsers(role, page, size)`                  | `/admin/users`                                                                                                                                                                                                  | GET                 | Trả Spring `Page`, unwrap thủ công                                    |
+| `adminService.lockUser` / `unlockUser`                      | `/admin/users/{id}/lock                                                                                                                                                                                         | unlock`             | POST                                                                  |      |
+| `adminService.changeUserRole({id, role})`                   | `/admin/users/{id}/role`                                                                                                                                                                                        | PUT                 |                                                                       |
+| `adminService.resetUserPassword`                            | `/admin/users/{id}/reset-password`                                                                                                                                                                              | POST                |                                                                       |
+| `adminService.listPendingProducts(page, size)`              | `/marketplace/admin/products/pending`                                                                                                                                                                           | GET                 |                                                                       |
+| `adminService.approveProduct / rejectProduct / hideProduct` | `/marketplace/admin/products/{id}/approve                                                                                                                                                                       | reject              | hide`                                                                 | POST | `rejectProduct` cần body `{reason}` |
+| `adminService.listConfigs / updateConfig(key, {value})`     | `/wallet/admin/configs` (+ `/{key}` cho PUT)                                                                                                                                                                    | GET / PUT           |                                                                       |
+| `adminService.getRevenueStats / listTransactions`           | `/wallet/admin/revenue-stats`, `/wallet/admin/transactions?type=`                                                                                                                                               | GET                 |                                                                       |
 
 > **Đặc điểm không đồng nhất**:
 >
@@ -809,8 +845,8 @@ Có hai dạng:
 - **User chủ động** (bấm nút trong layout):
   ```ts
   const handleLogout = () => {
-    dispatch(logout());            // authSlice: xoá state + storage, setAuthToken(null)
-    dispatch(clearUserProfile());  // userProfileSlice: reset
+    dispatch(logout()); // authSlice: xoá state + storage, setAuthToken(null)
+    dispatch(clearUserProfile()); // userProfileSlice: reset
     navigate("/auth/login");
   };
   ```
@@ -829,7 +865,7 @@ File frontend: `src/hooks/useNotificationSSE.ts`.
 ```ts
 // Rút gọn
 useEffect(() => {
-  if (!token) return;                        // không có session thì thôi
+  if (!token) return; // không có session thì thôi
 
   let es: EventSource | null = null;
   let retryDelay = INITIAL_RETRY_DELAY_MS;
@@ -837,9 +873,12 @@ useEffect(() => {
 
   const connect = () => {
     fetch(`${baseURL}/notifications/stream`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "text/event-stream",
+      },
       signal: abort.signal,
-    }).then(res => {
+    }).then((res) => {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       // Đọc từng chunk, parse event frames theo SSE spec ("data: …\n\n")
@@ -868,15 +907,15 @@ useEffect(() => {
 
 ### 8.1 Bắt buộc
 
-| Quy tắc | Lý do |
-| --- | --- |
-| Chỉ dùng `useAppDispatch` / `useAppSelector` từ `@/store/hooks` | Giữ typed, tránh import thẳng `react-redux`. |
-| Không configure axios thủ công trong component | Mọi baseURL/timeout/header đều đã gom trong `client.ts`. |
-| Mọi slice async dùng `createAsyncThunk` với `{ rejectValue: string }` | Đảm bảo error message hiển thị được. |
-| Persistence: chỉ `authSlice` tự lo, các slice khác tự fetch khi cần | Tránh stale data và giữ store đơn giản. |
-| Mỗi `createAsyncThunk` fallback tiếng Việt trong `rejectWithValue` | UX nhất quán. |
-| Mỗi action write của admin đi qua `mutationStatus` thông qua `addMatcher` | UI chỉ cần select 1 chỗ để hiển thị toast thành công/thất bại. |
-| Khi cần side-effect phức tạp trong interceptor (như dispatch), dùng `setupAuthInterceptor(...)` injection ở `main.tsx` | Tránh circular import. |
+| Quy tắc                                                                                                                | Lý do                                                          |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Chỉ dùng `useAppDispatch` / `useAppSelector` từ `@/store/hooks`                                                        | Giữ typed, tránh import thẳng `react-redux`.                   |
+| Không configure axios thủ công trong component                                                                         | Mọi baseURL/timeout/header đều đã gom trong `client.ts`.       |
+| Mọi slice async dùng `createAsyncThunk` với `{ rejectValue: string }`                                                  | Đảm bảo error message hiển thị được.                           |
+| Persistence: chỉ `authSlice` tự lo, các slice khác tự fetch khi cần                                                    | Tránh stale data và giữ store đơn giản.                        |
+| Mỗi `createAsyncThunk` fallback tiếng Việt trong `rejectWithValue`                                                     | UX nhất quán.                                                  |
+| Mỗi action write của admin đi qua `mutationStatus` thông qua `addMatcher`                                              | UI chỉ cần select 1 chỗ để hiển thị toast thành công/thất bại. |
+| Khi cần side-effect phức tạp trong interceptor (như dispatch), dùng `setupAuthInterceptor(...)` injection ở `main.tsx` | Tránh circular import.                                         |
 
 ### 8.2 Khuyến nghị
 
@@ -899,63 +938,63 @@ useEffect(() => {
 
 ### 9.1 Đường dẫn file
 
-| Mục đích | Đường dẫn |
-| --- | --- |
-| Store root | `src/store/index.ts` |
-| Typed hooks | `src/store/hooks.ts` |
-| `authSlice` | `src/store/authSlice.ts` |
-| `userProfileSlice` | `src/store/userProfileSlice.ts` |
-| `notificationSlice` | `src/store/notificationSlice.ts` |
-| `statisticsSlice` | `src/store/statisticsSlice.ts` |
-| `adminSlice` | `src/store/adminSlice.ts` |
-| Axios client + interceptor | `src/api/client.ts` |
-| Error helper | `src/api/errors.ts` |
-| API types | `src/api/types.ts` |
-| JWT helpers | `src/api/tokenUtils.ts` |
-| Adapter (đang sơ khai) | `src/api/adapters.ts` |
-| Service barrel | `src/api/services/index.ts` |
-| Provider wiring | `src/main.tsx` |
-| SSE hook | `src/hooks/useNotificationSSE.ts` |
+| Mục đích                   | Đường dẫn                         |
+| -------------------------- | --------------------------------- |
+| Store root                 | `src/store/index.ts`              |
+| Typed hooks                | `src/store/hooks.ts`              |
+| `authSlice`                | `src/store/authSlice.ts`          |
+| `userProfileSlice`         | `src/store/userProfileSlice.ts`   |
+| `notificationSlice`        | `src/store/notificationSlice.ts`  |
+| `statisticsSlice`          | `src/store/statisticsSlice.ts`    |
+| `adminSlice`               | `src/store/adminSlice.ts`         |
+| Axios client + interceptor | `src/api/client.ts`               |
+| Error helper               | `src/api/errors.ts`               |
+| API types                  | `src/api/types.ts`                |
+| JWT helpers                | `src/api/tokenUtils.ts`           |
+| Adapter (đang sơ khai)     | `src/api/adapters.ts`             |
+| Service barrel             | `src/api/services/index.ts`       |
+| Provider wiring            | `src/main.tsx`                    |
+| SSE hook                   | `src/hooks/useNotificationSSE.ts` |
 
 ### 9.2 Tất cả 28 async thunk
 
-| # | Slice | Thunk | Action type |
-| --- | --- | --- | --- |
-| 1 | auth | `login` | `auth/login` |
-| 2 | auth | `register` | `auth/register` |
-| 3 | userProfile | `fetchCurrentUserProfile` | `userProfile/fetchCurrentUserProfile` |
-| 4 | notifications | `fetchNotifications` | `notifications/fetchAll` |
-| 5 | notifications | `fetchUnreadCount` | `notifications/fetchUnreadCount` |
-| 6 | notifications | `markAsRead` | `notifications/markAsRead` |
-| 7 | notifications | `markAllAsRead` | `notifications/markAllAsRead` |
-| 8 | statistics | `fetchStatisticsOverview` | `statistics/fetchOverview` |
-| 9 | statistics | `fetchRevenue` | `statistics/fetchRevenue` |
-| 10 | statistics | `fetchTopProducts` | `statistics/fetchTopProducts` |
-| 11 | statistics | `fetchStudents` | `statistics/fetchStudents` |
-| 12 | statistics | `fetchQuizAttempts` | `statistics/fetchQuizAttempts` |
-| 13 | admin | `fetchAdminDashboard` | `admin/fetchDashboard` |
-| 14 | admin | `fetchAdminUsers` | `admin/fetchUsers` |
-| 15 | admin | `lockAdminUser` | `admin/lockUser` |
-| 16 | admin | `unlockAdminUser` | `admin/unlockUser` |
-| 17 | admin | `changeAdminUserRole` | `admin/changeUserRole` |
-| 18 | admin | `resetAdminUserPassword` | `admin/resetUserPassword` |
-| 19 | admin | `fetchPendingProducts` | `admin/fetchPendingProducts` |
-| 20 | admin | `approveAdminProduct` | `admin/approveProduct` |
-| 21 | admin | `rejectAdminProduct` | `admin/rejectProduct` |
-| 22 | admin | `fetchAdminConfigs` | `admin/fetchConfigs` |
-| 23 | admin | `updateAdminConfig` | `admin/updateConfig` |
+| #   | Slice         | Thunk                     | Action type                           |
+| --- | ------------- | ------------------------- | ------------------------------------- |
+| 1   | auth          | `login`                   | `auth/login`                          |
+| 2   | auth          | `register`                | `auth/register`                       |
+| 3   | userProfile   | `fetchCurrentUserProfile` | `userProfile/fetchCurrentUserProfile` |
+| 4   | notifications | `fetchNotifications`      | `notifications/fetchAll`              |
+| 5   | notifications | `fetchUnreadCount`        | `notifications/fetchUnreadCount`      |
+| 6   | notifications | `markAsRead`              | `notifications/markAsRead`            |
+| 7   | notifications | `markAllAsRead`           | `notifications/markAllAsRead`         |
+| 8   | statistics    | `fetchStatisticsOverview` | `statistics/fetchOverview`            |
+| 9   | statistics    | `fetchRevenue`            | `statistics/fetchRevenue`             |
+| 10  | statistics    | `fetchTopProducts`        | `statistics/fetchTopProducts`         |
+| 11  | statistics    | `fetchStudents`           | `statistics/fetchStudents`            |
+| 12  | statistics    | `fetchQuizAttempts`       | `statistics/fetchQuizAttempts`        |
+| 13  | admin         | `fetchAdminDashboard`     | `admin/fetchDashboard`                |
+| 14  | admin         | `fetchAdminUsers`         | `admin/fetchUsers`                    |
+| 15  | admin         | `lockAdminUser`           | `admin/lockUser`                      |
+| 16  | admin         | `unlockAdminUser`         | `admin/unlockUser`                    |
+| 17  | admin         | `changeAdminUserRole`     | `admin/changeUserRole`                |
+| 18  | admin         | `resetAdminUserPassword`  | `admin/resetUserPassword`             |
+| 19  | admin         | `fetchPendingProducts`    | `admin/fetchPendingProducts`          |
+| 20  | admin         | `approveAdminProduct`     | `admin/approveProduct`                |
+| 21  | admin         | `rejectAdminProduct`      | `admin/rejectProduct`                 |
+| 22  | admin         | `fetchAdminConfigs`       | `admin/fetchConfigs`                  |
+| 23  | admin         | `updateAdminConfig`       | `admin/updateConfig`                  |
 
 (Một số slice có thêm helper thunks / fetch phụ trợ không nằm trong bảng — xem thẳng trong file slice tương ứng.)
 
 ### 9.3 Tất cả sync action
 
-| Slice | Actions |
-| --- | --- |
-| auth | `logout`, `clearAuthError`, `setCredentials` |
-| userProfile | `clearUserProfile` |
-| notifications | `addNotification`, `clearNotifications` |
-| statistics | `clearStatistics` |
-| admin | `setUsersRoleFilter`, `setUsersPage`, `setUsersSize`, `setProductsPage`, `setProductsSize`, `clearMutationStatus` |
+| Slice         | Actions                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------- |
+| auth          | `logout`, `clearAuthError`, `setCredentials`                                                                      |
+| userProfile   | `clearUserProfile`                                                                                                |
+| notifications | `addNotification`, `clearNotifications`                                                                           |
+| statistics    | `clearStatistics`                                                                                                 |
+| admin         | `setUsersRoleFilter`, `setUsersPage`, `setUsersSize`, `setProductsPage`, `setProductsSize`, `clearMutationStatus` |
 
 ### 9.4 Vòng đời của 1 request
 

@@ -8,36 +8,36 @@
 
 ## Mục lục
 
-| # | Pattern | Trạng thái |
-| --- | --- | --- |
-| 1 | [Saga (Choreography vs Orchestration)](#1-saga-pattern--choreography-only) | Dùng một phần (choreography) |
-| 2 | [Transactional Outbox](#2-transactional-outbox-pattern--dùng--2-nơi) | Dùng (×2) |
-| 3 | [Inbox (Idempotent Receiver)](#3-inbox-pattern--dùng) | Dùng |
-| 4 | [Layered Architecture](#4-layered-architecture--dùng) | Dùng (toàn hệ thống) |
-| 5 | [Hexagonal / Ports & Adapters](#5-hexagonal--ports--adapters--không-dùng) | **KHÔNG** dùng |
-| 6 | [CQRS](#6-cqrs--không-dùng) | **KHÔNG** dùng |
-| 7 | [Event Sourcing](#7-event-sourcing--không-dùng) | **KHÔNG** dùng |
-| 8 | [API Gateway](#8-api-gateway-pattern--dùng) | Dùng |
-| 9 | [Service Registry / Discovery](#9-service-registry--discovery--dùng) | Dùng |
-| 10 | [Config Server](#10-config-server-pattern--dùng) | Dùng |
-| 11 | [Database per Service](#11-database-per-service--dùng) | Dùng |
-| 12 | [Circuit Breaker](#12-circuit-breaker--không-dùng) | **KHÔNG** dùng |
-| 13 | [Bulkhead](#13-bulkhead-pattern--không-dùng) | **KHÔNG** dùng |
-| 14 | [MapStruct](#14-mapstruct--dùng) | Dùng |
-| 15 | [Repository](#15-repository-pattern--dùng) | Dùng |
-| 16 | [Builder](#16-builder-pattern--dùng) | Dùng (Lombok) |
-| 17 | [Strategy](#17-strategy-pattern--không-dùng-cổ-điển) | Đa hình sealed interface |
-| 18 | [Observer / Pub-Sub (Message Broker)](#18-observer--pub-sub--dùng) | Dùng (RabbitMQ) |
-| 19 | [Factory](#19-factory-pattern--không-dùng) | **KHÔNG** dùng |
-| 20 | [Decorator](#20-decorator-pattern--không-dùng-oo) | Filter SPI |
-| 21 | [Dependency Injection](#21-dependency-injection--dùng) | Dùng |
-| 22 | [Idempotency](#22-idempotency-patterns--dùng) | Dùng |
-| 23 | [Dead Letter Queue](#23-dead-letter-queue--không-cấu-hình) | **KHÔNG** |
-| 24 | [Outbox + Choreography](#24-outbox--choreography--kết-hợp) | Đã trình bày ở §1, §2 |
-| 25 | [Strangler Fig](#25-strangler-fig-pattern--không-dùng) | **KHÔNG** |
-| 26 | [Sidecar](#26-sidecar-pattern--không-dùng-trong-code) | **KHÔNG** trong app code |
-| 27 | [BFF (Backend for Frontend)](#27-bff-backend-for-frontend--không-dùng) | **KHÔNG** |
-| 28 | [Response Wrapper](#28-phụ-lục-response-wrapper--bộ-quy-tắc-chung) | Quy ước toàn dự án |
+| #   | Pattern                                                                    | Trạng thái                   |
+| --- | -------------------------------------------------------------------------- | ---------------------------- |
+| 1   | [Saga (Choreography vs Orchestration)](#1-saga-pattern--choreography-only) | Dùng một phần (choreography) |
+| 2   | [Transactional Outbox](#2-transactional-outbox-pattern--dùng--2-nơi)       | Dùng (×2)                    |
+| 3   | [Inbox (Idempotent Receiver)](#3-inbox-pattern--dùng)                      | Dùng                         |
+| 4   | [Layered Architecture](#4-layered-architecture--dùng)                      | Dùng (toàn hệ thống)         |
+| 5   | [Hexagonal / Ports & Adapters](#5-hexagonal--ports--adapters--không-dùng)  | **KHÔNG** dùng               |
+| 6   | [CQRS](#6-cqrs--không-dùng)                                                | **KHÔNG** dùng               |
+| 7   | [Event Sourcing](#7-event-sourcing--không-dùng)                            | **KHÔNG** dùng               |
+| 8   | [API Gateway](#8-api-gateway-pattern--dùng)                                | Dùng                         |
+| 9   | [Service Registry / Discovery](#9-service-registry--discovery--dùng)       | Dùng                         |
+| 10  | [Config Server](#10-config-server-pattern--dùng)                           | Dùng                         |
+| 11  | [Database per Service](#11-database-per-service--dùng)                     | Dùng                         |
+| 12  | [Circuit Breaker](#12-circuit-breaker--không-dùng)                         | **KHÔNG** dùng               |
+| 13  | [Bulkhead](#13-bulkhead-pattern--không-dùng)                               | **KHÔNG** dùng               |
+| 14  | [MapStruct](#14-mapstruct--dùng)                                           | Dùng                         |
+| 15  | [Repository](#15-repository-pattern--dùng)                                 | Dùng                         |
+| 16  | [Builder](#16-builder-pattern--dùng)                                       | Dùng (Lombok)                |
+| 17  | [Strategy](#17-strategy-pattern--không-dùng-cổ-điển)                       | Đa hình sealed interface     |
+| 18  | [Observer / Pub-Sub (Message Broker)](#18-observer--pub-sub--dùng)         | Dùng (RabbitMQ)              |
+| 19  | [Factory](#19-factory-pattern--không-dùng)                                 | **KHÔNG** dùng               |
+| 20  | [Decorator](#20-decorator-pattern--không-dùng-oo)                          | Filter SPI                   |
+| 21  | [Dependency Injection](#21-dependency-injection--dùng)                     | Dùng                         |
+| 22  | [Idempotency](#22-idempotency-patterns--dùng)                              | Dùng                         |
+| 23  | [Dead Letter Queue](#23-dead-letter-queue--không-cấu-hình)                 | **KHÔNG**                    |
+| 24  | [Outbox + Choreography](#24-outbox--choreography--kết-hợp)                 | Đã trình bày ở §1, §2        |
+| 25  | [Strangler Fig](#25-strangler-fig-pattern--không-dùng)                     | **KHÔNG**                    |
+| 26  | [Sidecar](#26-sidecar-pattern--không-dùng-trong-code)                      | **KHÔNG** trong app code     |
+| 27  | [BFF (Backend for Frontend)](#27-bff-backend-for-frontend--không-dùng)     | **KHÔNG**                    |
+| 28  | [Response Wrapper](#28-phụ-lục-response-wrapper--bộ-quy-tắc-chung)         | Quy ước toàn dự án           |
 
 ---
 
@@ -196,11 +196,11 @@ Status enum: `OutboxStatus.java` (`PENDING / SENT / FAILED`).
 
 ### Tại sao chọn pattern này (và **không** dùng publish trực tiếp trong service)
 
-| Phương án | Vấn đề |
-| --- | --- |
-| Publish trực tiếp trong `@Transactional` | DB commit có thể fail sau khi RabbitMQ đã gửi → mất message. |
-| Publish **sau** khi commit (qua `@TransactionalEventListener`) | RabbitMQ có thể down/network blip → mất message. |
-| **Outbox** (chọn) | DB transaction = nguồn sự thật duy nhất; job sẽ gửi lại cho đến khi broker nhận. |
+| Phương án                                                      | Vấn đề                                                                           |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Publish trực tiếp trong `@Transactional`                       | DB commit có thể fail sau khi RabbitMQ đã gửi → mất message.                     |
+| Publish **sau** khi commit (qua `@TransactionalEventListener`) | RabbitMQ có thể down/network blip → mất message.                                 |
+| **Outbox** (chọn)                                              | DB transaction = nguồn sự thật duy nhất; job sẽ gửi lại cho đến khi broker nhận. |
 
 ---
 
@@ -379,15 +379,15 @@ Không có Axon, không có event-stored aggregate, không có cơ chế replay.
 
 ### Thành phần chính
 
-| File | Vai trò |
-| --- | --- |
-| `ApiGatewayApplication.java` | Boot main class. |
-| `resources/application.yaml` | Khai báo routes: `uri: lb://FLASHCARD-SERVICE` v.v., dùng Eureka. |
-| `filter/AuthenticationFilter.java` | JWT auth filter (xem dưới). |
-| `filter/GlobalLoggingFilter.java` | Ghi log mọi request, đo thời gian (`order = -2`). |
-| `config/OpenApiRouteConfig.java` | Rewrite `/v3/api-docs/<service>` sang mỗi service. |
-| `config/OpenAPIAggregationConfig.java` | Tổng hợp Swagger UI. |
-| `config/CorsConfig.java` | CORS. |
+| File                                   | Vai trò                                                           |
+| -------------------------------------- | ----------------------------------------------------------------- |
+| `ApiGatewayApplication.java`           | Boot main class.                                                  |
+| `resources/application.yaml`           | Khai báo routes: `uri: lb://FLASHCARD-SERVICE` v.v., dùng Eureka. |
+| `filter/AuthenticationFilter.java`     | JWT auth filter (xem dưới).                                       |
+| `filter/GlobalLoggingFilter.java`      | Ghi log mọi request, đo thời gian (`order = -2`).                 |
+| `config/OpenApiRouteConfig.java`       | Rewrite `/v3/api-docs/<service>` sang mỗi service.                |
+| `config/OpenAPIAggregationConfig.java` | Tổng hợp Swagger UI.                                              |
+| `config/CorsConfig.java`               | CORS.                                                             |
 
 ### AuthenticationFilter — chi tiết
 
@@ -489,16 +489,16 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
 
 ### Bằng chứng
 
-| Service | DB | Port | Schema |
-| --- | --- | --- | --- |
-| identity-service | Postgres | 5432 | `identity-service-seika` |
-| profile-service | Postgres | 5433 | `profile-service-seika` |
-| wallet-service | Postgres | 5434 | `wallet-service-seika` |
-| marketplace-service | Postgres | 5435 | `marketplace-service-seika` |
-| notification-service | MongoDB | 27017 (rs0) | `notification-service-seika` |
-| flashcard-service | MongoDB | 27017 (rs0) | `flashcard-service-seika` |
-| quiz-service | MongoDB | 27017 (rs0) | `quiz-service-seika` |
-| reward-service | Postgres | (5436) | `reward-service-seika` |
+| Service              | DB       | Port        | Schema                       |
+| -------------------- | -------- | ----------- | ---------------------------- |
+| identity-service     | Postgres | 5432        | `identity-service-seika`     |
+| profile-service      | Postgres | 5433        | `profile-service-seika`      |
+| wallet-service       | Postgres | 5434        | `wallet-service-seika`       |
+| marketplace-service  | Postgres | 5435        | `marketplace-service-seika`  |
+| notification-service | MongoDB  | 27017 (rs0) | `notification-service-seika` |
+| flashcard-service    | MongoDB  | 27017 (rs0) | `flashcard-service-seika`    |
+| quiz-service         | MongoDB  | 27017 (rs0) | `quiz-service-seika`         |
+| reward-service       | Postgres | (5436)      | `reward-service-seika`       |
 
 ### Vì sao
 
@@ -654,15 +654,15 @@ BaseQuiz quiz = switch (request) {
 
 5 topic exchange + 1 fanout:
 
-| Exchange | Loại | Routing key chính | Consumers |
-| --- | --- | --- | --- |
-| `identity.events` | topic | `user.registered` | wallet-service, profile-service, notification-service |
-| `learning.events` | topic | `reward.granted`, `deck.completed`, `quiz.completed` | wallet-service (reward), reward-service |
-| `marketplace.events` | topic | `content.purchased`, `content.created`, `content.reviewed` | profile-service, flashcard-service, quiz-service, wallet-service, notification-service |
-| `content.events` | topic | `flashcard.set.created/updated`, `quiz.set.created/updated` | (search, recommend) |
-| `wallet.commands` | topic | `wallet.debit.requested` | wallet-service |
-| `wallet.events` | topic | `wallet.debit.succeeded/failed`, `wallet.updated.*` | marketplace-service, notification-service |
-| `learn.exchange` | fanout | (none) | broadcast `LearnProgressDTO` |
+| Exchange             | Loại   | Routing key chính                                           | Consumers                                                                              |
+| -------------------- | ------ | ----------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `identity.events`    | topic  | `user.registered`                                           | wallet-service, profile-service, notification-service                                  |
+| `learning.events`    | topic  | `reward.granted`, `deck.completed`, `quiz.completed`        | wallet-service (reward), reward-service                                                |
+| `marketplace.events` | topic  | `content.purchased`, `content.created`, `content.reviewed`  | profile-service, flashcard-service, quiz-service, wallet-service, notification-service |
+| `content.events`     | topic  | `flashcard.set.created/updated`, `quiz.set.created/updated` | (search, recommend)                                                                    |
+| `wallet.commands`    | topic  | `wallet.debit.requested`                                    | wallet-service                                                                         |
+| `wallet.events`      | topic  | `wallet.debit.succeeded/failed`, `wallet.updated.*`         | marketplace-service, notification-service                                              |
+| `learn.exchange`     | fanout | (none)                                                      | broadcast `LearnProgressDTO`                                                           |
 
 Khai báo exchange/queue trong từng `RabbitMQConfig.java` của mỗi service. Tổng cộng **20 `@RabbitListener`** annotations.
 
@@ -763,13 +763,13 @@ Khi tăng scale, hãy:
 
 Đã trình bày chi tiết ở §1 và §2. Tóm tắt:
 
-| Bước | Thành phần | Vai trò |
-| --- | --- | --- |
-| Tạo Order + ghi Outbox | marketplace-service (`OrderService`) | Cùng transaction, không có dual-write. |
-| Publish Outbox sang broker | marketplace-service (`OutboxProcessor` @Scheduled) | Worker định kỳ. |
-| Debit wallet | wallet-service (consumer) | Side effect tài chính. |
-| Cập nhật Order theo kết quả | marketplace-service (`WalletEventHandler` + Inbox) | State machine. |
-| Phát tán content.purchased | marketplace-service → nhiều consumer | Update read-model các nơi. |
+| Bước                        | Thành phần                                         | Vai trò                                |
+| --------------------------- | -------------------------------------------------- | -------------------------------------- |
+| Tạo Order + ghi Outbox      | marketplace-service (`OrderService`)               | Cùng transaction, không có dual-write. |
+| Publish Outbox sang broker  | marketplace-service (`OutboxProcessor` @Scheduled) | Worker định kỳ.                        |
+| Debit wallet                | wallet-service (consumer)                          | Side effect tài chính.                 |
+| Cập nhật Order theo kết quả | marketplace-service (`WalletEventHandler` + Inbox) | State machine.                         |
+| Phát tán content.purchased  | marketplace-service → nhiều consumer               | Update read-model các nơi.             |
 
 ---
 
@@ -814,7 +814,7 @@ public class PagedResponse<T> {
 }
 ```
 
-Mọi controller trả `ResponseEntity<ApiResponse<T>>`; mọi method paginated trả `ApiResponse<PagedResponse<X>>`. Mọi exception được `@RestControllerAdvice` dịch sang `ApiResponse` (giống nhau ở mọi service). 
+Mọi controller trả `ResponseEntity<ApiResponse<T>>`; mọi method paginated trả `ApiResponse<PagedResponse<X>>`. Mọi exception được `@RestControllerAdvice` dịch sang `ApiResponse` (giống nhau ở mọi service).
 
 > Pattern này **không** phải Gang-of-Four kinh điển, nhưng là **convention quan trọng nhất** của dự án — gần như mọi thứ liên quan đến HTTP đều đi qua nó.
 
@@ -824,25 +824,25 @@ Mọi controller trả `ResponseEntity<ApiResponse<T>>`; mọi method paginated 
 
 ### Mạnh nhất
 
-| Pattern | Mức độ | Đặc điểm |
-| --- | --- | --- |
-| **Outbox + Inbox** | Rất tốt | Triển khai ở 2 service, giải quyết dual-write và duplicate delivery. |
-| **API Gateway + JWT filter** | Rất tốt | Một entry point, validate token local, inject user headers xuống downstream. |
-| **Pub/Sub (RabbitMQ)** | Rất tốt | 6 exchange, 20 listener; là "xương sống" giao tiếp service. |
-| **MapStruct** | Tốt | Khử boilerplate DTO ↔ entity. |
-| **Layered + Repository + DI** | Chuẩn | Đúng pattern Spring "kinh điển". |
+| Pattern                       | Mức độ  | Đặc điểm                                                                     |
+| ----------------------------- | ------- | ---------------------------------------------------------------------------- |
+| **Outbox + Inbox**            | Rất tốt | Triển khai ở 2 service, giải quyết dual-write và duplicate delivery.         |
+| **API Gateway + JWT filter**  | Rất tốt | Một entry point, validate token local, inject user headers xuống downstream. |
+| **Pub/Sub (RabbitMQ)**        | Rất tốt | 6 exchange, 20 listener; là "xương sống" giao tiếp service.                  |
+| **MapStruct**                 | Tốt     | Khử boilerplate DTO ↔ entity.                                                |
+| **Layered + Repository + DI** | Chuẩn   | Đúng pattern Spring "kinh điển".                                             |
 
 ### Còn thiếu/kém (gợi ý cải tiến)
 
-| Pattern | Vì sao nên thêm |
-| --- | --- |
+| Pattern                                  | Vì sao nên thêm                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------- |
 | **Saga Orchestrator** (Temporal/Camunda) | Khi có workflow phân nhánh (refund, approval nhiều cấp) thay vì step đường thẳng. |
-| **Circuit Breaker** (Resilience4j) | Khi Feign giữa service xuất hiện flakiness, fail-fast tay không đủ. |
-| **DLQ** cho mỗi RabbitMQ queue | Audit khi poison message. Hiện đang bị "biến mất". |
-| **CQRS** đọc riêng (read-store) | Khi dashboard teacher phức tạp và query nặng. |
-| **BFF** | Khi mobile/web có yêu cầu render khác nhau (mobile cần payload gọn hơn). |
-| **Hexagonal** | Khi muốn swap DB/search-engine/cache mà không sửa service. |
-| **Event Sourcing** | Khi cần audit/replay cho finance (chưa cần cho Seika hiện tại). |
+| **Circuit Breaker** (Resilience4j)       | Khi Feign giữa service xuất hiện flakiness, fail-fast tay không đủ.               |
+| **DLQ** cho mỗi RabbitMQ queue           | Audit khi poison message. Hiện đang bị "biến mất".                                |
+| **CQRS** đọc riêng (read-store)          | Khi dashboard teacher phức tạp và query nặng.                                     |
+| **BFF**                                  | Khi mobile/web có yêu cầu render khác nhau (mobile cần payload gọn hơn).          |
+| **Hexagonal**                            | Khi muốn swap DB/search-engine/cache mà không sửa service.                        |
+| **Event Sourcing**                       | Khi cần audit/replay cho finance (chưa cần cho Seika hiện tại).                   |
 
 > Hai **lỗ hổng** đáng chú ý nhất cho vận hành thực tế:
 >

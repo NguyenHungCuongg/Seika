@@ -68,14 +68,14 @@ This document defines the current visual and component conventions used in the S
 
 ### Type Scale Patterns
 
-| Use case             | Size pattern                                              | Weight  | Tracking   |
-| -------------------- | --------------------------------------------------------- | ------- | ---------- |
-| Hero display         | `text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]`       | medium  | `-0.035em` |
-| Auth page headline   | `text-4xl lg:text-5xl`                                    | medium  | `-0.025em` |
-| Section title        | `text-4xl md:text-5xl lg:text-6xl`                        | medium  | `-0.025em` |
-| Card title           | `text-2xl lg:text-3xl lg:text-4xl`                        | medium  | `-0.015em` |
-| Body                 | `text-base lg:text-lg`                                    | regular | default    |
-| Eyebrow              | `text-[10px]` / `text-[11px]`                              | medium  | `0.18–0.22em` uppercase |
+| Use case           | Size pattern                                        | Weight  | Tracking                |
+| ------------------ | --------------------------------------------------- | ------- | ----------------------- |
+| Hero display       | `text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]` | medium  | `-0.035em`              |
+| Auth page headline | `text-4xl lg:text-5xl`                              | medium  | `-0.025em`              |
+| Section title      | `text-4xl md:text-5xl lg:text-6xl`                  | medium  | `-0.025em`              |
+| Card title         | `text-2xl lg:text-3xl lg:text-4xl`                  | medium  | `-0.015em`              |
+| Body               | `text-base lg:text-lg`                              | regular | default                 |
+| Eyebrow            | `text-[10px]` / `text-[11px]`                       | medium  | `0.18–0.22em` uppercase |
 
 ### Weight Convention
 
@@ -95,22 +95,22 @@ All color tokens are defined in `src/index.css` via `@theme inline` **and** as C
 
 ### Surface Tokens
 
-| Token             | Value     | Use                                                          |
-| ----------------- | --------- | ------------------------------------------------------------ |
-| `--color-bg`      | `#15091e` | Default page background (deep aubergine, near-black)         |
-| `--color-bg-2`    | `#1c0f2e` | Slightly lighter, used for nested shells                     |
-| `--color-aubergine`   | `#2a1247` | Mid-tone surface                                             |
-| `--color-aubergine-2` | `#3a1c5c` | Mid-tone surface (lighter)                                   |
-| `--color-aubergine-3` | `#4f2670` | Footer base, slightly lighter than page                      |
+| Token                 | Value     | Use                                                  |
+| --------------------- | --------- | ---------------------------------------------------- |
+| `--color-bg`          | `#15091e` | Default page background (deep aubergine, near-black) |
+| `--color-bg-2`        | `#1c0f2e` | Slightly lighter, used for nested shells             |
+| `--color-aubergine`   | `#2a1247` | Mid-tone surface                                     |
+| `--color-aubergine-2` | `#3a1c5c` | Mid-tone surface (lighter)                           |
+| `--color-aubergine-3` | `#4f2670` | Footer base, slightly lighter than page              |
 
 ### Brand Accents
 
-| Token            | Value     | Use                                                          |
-| ---------------- | --------- | ------------------------------------------------------------ |
-| `--color-gold`     | `#d4a843` | Primary accent (desaturated). CTA fill, link, italic display accent |
-| `--color-gold-soft`| `#f1e4c0` | Soft gold for muted states                                    |
-| `--color-cream`    | `#faf6ee` | Light surface — Contact section, "earn coins" card, brand panel  |
-| `--color-cream-2`  | `#f1ead8` | Cream mid-tone                                               |
+| Token               | Value     | Use                                                                 |
+| ------------------- | --------- | ------------------------------------------------------------------- |
+| `--color-gold`      | `#d4a843` | Primary accent (desaturated). CTA fill, link, italic display accent |
+| `--color-gold-soft` | `#f1e4c0` | Soft gold for muted states                                          |
+| `--color-cream`     | `#faf6ee` | Light surface — Contact section, "earn coins" card, brand panel     |
+| `--color-cream-2`   | `#f1ead8` | Cream mid-tone                                                      |
 
 ### Text & Hairlines
 
@@ -442,7 +442,9 @@ Pin the CTA to the bottom of the card (`mt-auto`) when card content varies in le
 ### Primary CTA
 
 ```jsx
-<Button variant="primary" size="lg" trailing>Get started</Button>
+<Button variant="primary" size="lg" trailing>
+  Get started
+</Button>
 ```
 
 ### Form card (auth)
@@ -486,9 +488,7 @@ Pin the CTA to the bottom of the card (`mt-auto`) when card content varies in le
 ### Cream section (Contact / About mission)
 
 ```jsx
-<section className="bg-[#faf6ee] text-[#1c0f2e]">
-  {/* ... */}
-</section>
+<section className="bg-[#faf6ee] text-[#1c0f2e]">{/* ... */}</section>
 ```
 
 ### Transparent 3D object
@@ -522,14 +522,14 @@ The authenticated dashboards (`/student/dashboard`, `/teacher/dashboard`, `/admi
 
 ### New shared primitives (`src/components/ui/`)
 
-| Component | Purpose | Notes |
-| --- | --- | --- |
-| `<PageHeader>` | Title row at the top of every dashboard page | Token: `font-sans-ui text-2xl font-semibold tracking-tight text-cream`. Props: `title`, `subtitle`, `actions`, `breadcrumbs`. |
-| `<SectionCard>` | Minimalist container for dashboard sections | `bg-white/[0.025] border border-white/[0.06] rounded-2xl p-6`. Optional `header` and `footer`. No backdrop-blur, no shadow. |
-| `<StatCard>` | Single KPI card | Label: `text-xs uppercase tracking-[0.12em] text-white/45`. Value: `text-3xl font-semibold text-cream tabular-nums`. Optional `icon` + `iconVariant`, `delta`, `unit`, `hint`. Replaces 4-up gradient KPI tiles. |
-| `<IconChip>` | 9×9 hairline square for icons | Variants: `gold \| muted \| info \| success \| danger \| warning`. Decorative by default (`aria-hidden`); consumer passes `ariaLabel` + `decorative={false}` when meaning is conveyed. |
-| `<StatusPill>` | Text-carrying status / role / type pill | Variants: `success \| danger \| warning \| info \| neutral \| gold`. Always renders text (no color-only meaning). Replaces inline Tailwind palette pills. |
-| `<EmptyState>` | Composed empty-state block | IconChip + title + description + optional action. Use wherever a section has nothing to show. |
+| Component       | Purpose                                      | Notes                                                                                                                                                                                                            |
+| --------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<PageHeader>`  | Title row at the top of every dashboard page | Token: `font-sans-ui text-2xl font-semibold tracking-tight text-cream`. Props: `title`, `subtitle`, `actions`, `breadcrumbs`.                                                                                    |
+| `<SectionCard>` | Minimalist container for dashboard sections  | `bg-white/[0.025] border border-white/[0.06] rounded-2xl p-6`. Optional `header` and `footer`. No backdrop-blur, no shadow.                                                                                      |
+| `<StatCard>`    | Single KPI card                              | Label: `text-xs uppercase tracking-[0.12em] text-white/45`. Value: `text-3xl font-semibold text-cream tabular-nums`. Optional `icon` + `iconVariant`, `delta`, `unit`, `hint`. Replaces 4-up gradient KPI tiles. |
+| `<IconChip>`    | 9×9 hairline square for icons                | Variants: `gold \| muted \| info \| success \| danger \| warning`. Decorative by default (`aria-hidden`); consumer passes `ariaLabel` + `decorative={false}` when meaning is conveyed.                           |
+| `<StatusPill>`  | Text-carrying status / role / type pill      | Variants: `success \| danger \| warning \| info \| neutral \| gold`. Always renders text (no color-only meaning). Replaces inline Tailwind palette pills.                                                        |
+| `<EmptyState>`  | Composed empty-state block                   | IconChip + title + description + optional action. Use wherever a section has nothing to show.                                                                                                                    |
 
 ### Extended / rewritten primitives
 
@@ -539,16 +539,16 @@ The authenticated dashboards (`/student/dashboard`, `/teacher/dashboard`, `/admi
 
 ### Layout chrome (Student/Teacher/Admin DashboardLayout)
 
-| Surface | Replace | With |
-| --- | --- | --- |
-| Sidebar wrapper | `backdrop-blur-xl bg-[rgba(20,15,38,0.88)]` | `bg-[#1c0f2e] border-r border-white/[0.06]` |
-| Sidebar width | `w-64` | `w-60` |
-| Header wrapper | `backdrop-blur-xl bg-[rgba(24,18,45,0.9)] shadow-[0_24px_80px_*]` | `bg-[#15091e]/80 backdrop-blur-md border-b border-white/[0.06]` |
-| Nav row (inactive) | `text-[var(--text-muted)] hover:bg-[var(--muted)]/50` | `text-white/60 hover:text-cream hover:bg-white/[0.03]` |
-| Nav row (active) | `bg-[var(--primary)] text-[var(--primary-foreground)]` | `bg-white/[0.05] text-cream border-l-2 border-[#d4a843]` (left-rail accent) |
-| Role chip (Teacher) | `bg-amber-500/20 text-amber-300` | `<StatusPill variant="gold">Teacher</StatusPill>` |
-| Role chip (Admin) | `bg-red-500/20 text-red-300` | `<StatusPill variant="neutral">Admin</StatusPill>` (red is reserved for destructive actions at rest) |
-| Avatar fallback | `bg-[var(--primary)]/20` | `bg-white/[0.06] text-cream` |
+| Surface             | Replace                                                           | With                                                                                                 |
+| ------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Sidebar wrapper     | `backdrop-blur-xl bg-[rgba(20,15,38,0.88)]`                       | `bg-[#1c0f2e] border-r border-white/[0.06]`                                                          |
+| Sidebar width       | `w-64`                                                            | `w-60`                                                                                               |
+| Header wrapper      | `backdrop-blur-xl bg-[rgba(24,18,45,0.9)] shadow-[0_24px_80px_*]` | `bg-[#15091e]/80 backdrop-blur-md border-b border-white/[0.06]`                                      |
+| Nav row (inactive)  | `text-[var(--text-muted)] hover:bg-[var(--muted)]/50`             | `text-white/60 hover:text-cream hover:bg-white/[0.03]`                                               |
+| Nav row (active)    | `bg-[var(--primary)] text-[var(--primary-foreground)]`            | `bg-white/[0.05] text-cream border-l-2 border-[#d4a843]` (left-rail accent)                          |
+| Role chip (Teacher) | `bg-amber-500/20 text-amber-300`                                  | `<StatusPill variant="gold">Teacher</StatusPill>`                                                    |
+| Role chip (Admin)   | `bg-red-500/20 text-red-300`                                      | `<StatusPill variant="neutral">Admin</StatusPill>` (red is reserved for destructive actions at rest) |
+| Avatar fallback     | `bg-[var(--primary)]/20`                                          | `bg-white/[0.06] text-cream`                                                                         |
 
 ### Forbidden patterns (dashboard grep audit)
 

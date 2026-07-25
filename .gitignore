@@ -73,6 +73,7 @@ playwright-report/
 *.instructions.md
 *.agent.md
 .rtk
+.superpowers
 
 # Local runtime files
 *.pid
