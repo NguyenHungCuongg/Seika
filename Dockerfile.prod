@@ -1,6 +1,7 @@
 # Stage 1: Dependency cache layer (shared across all services)
 FROM maven:3.9.6-eclipse-temurin-21-jammy AS base
 WORKDIR /build
+ENV MAVEN_OPTS="-Xmx512m"
 
 # Copy parent pom.xml
 COPY pom.xml .
