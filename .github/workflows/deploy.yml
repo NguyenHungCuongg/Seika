@@ -16,10 +16,18 @@ jobs:
         run: |
           echo "Bat dau xu ly cau hinh moi truong..."
           
+          # Fix git dubious ownership warning
+          git config --global --add safe.directory "${{ github.workspace }}"
+          
           # Copy .env from local workspace
           cp "F:\Microservices Projects\Seika\.env" .
           
           echo "Da dong bo file .env thanh cong! Bat dau build he thong..."
+          
+          # Disable default attestations to remove git warnings, and limit parallel builds to prevent OOM
+          $env:BUILDX_NO_DEFAULT_ATTESTATIONS=1
+          $env:COMPOSE_PARALLEL_LIMIT=1
+          
           docker compose -f docker-compose.prod.yml up -d --build
           
           echo "He thong da duoc cap nhat"
