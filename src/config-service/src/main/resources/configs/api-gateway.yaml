@@ -11,12 +11,6 @@ spring:
     context-propagation: auto
   cloud:
     gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: 50
-            redis-rate-limiter.burstCapacity: 100
-            key-resolver: "#{@userKeyResolver}"
       server:
         webflux:
           routes:
@@ -27,48 +21,61 @@ spring:
                 - Path=/v3/api-docs/identity-service/**,/v3/api-docs/identity-service
               filters:
                 - RewritePath=/v3/api-docs/identity-service(?:/.*)?,/v3/api-docs
+                - &general-rate-limiter
+                  name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 50
+                    redis-rate-limiter.burstCapacity: 100
+                    key-resolver: "#{@userKeyResolver}"
             - id: flashcard-openapi
               uri: lb://FLASHCARD-SERVICE
               predicates:
                 - Path=/v3/api-docs/flashcard-service/**,/v3/api-docs/flashcard-service
               filters:
                 - RewritePath=/v3/api-docs/flashcard-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: profile-openapi
               uri: lb://PROFILE-SERVICE
               predicates:
                 - Path=/v3/api-docs/profile-service/**,/v3/api-docs/profile-service
               filters:
                 - RewritePath=/v3/api-docs/profile-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: wallet-openapi
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/v3/api-docs/wallet-service/**,/v3/api-docs/wallet-service
               filters:
                 - RewritePath=/v3/api-docs/wallet-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: marketplace-openapi
               uri: lb://MARKETPLACE-SERVICE
               predicates:
                 - Path=/v3/api-docs/marketplace-service/**,/v3/api-docs/marketplace-service
               filters:
                 - RewritePath=/v3/api-docs/marketplace-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: quiz-openapi
               uri: lb://QUIZ-SERVICE
               predicates:
                 - Path=/v3/api-docs/quiz-service/**,/v3/api-docs/quiz-service
               filters:
                 - RewritePath=/v3/api-docs/quiz-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: notification-openapi
               uri: lb://NOTIFICATION-SERVICE
               predicates:
                 - Path=/v3/api-docs/notification-service/**,/v3/api-docs/notification-service
               filters:
                 - RewritePath=/v3/api-docs/notification-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             - id: reward-openapi
               uri: lb://REWARD-SERVICE
               predicates:
                 - Path=/v3/api-docs/reward-service/**,/v3/api-docs/reward-service
               filters:
                 - RewritePath=/v3/api-docs/reward-service(?:/.*)?,/v3/api-docs
+                - *general-rate-limiter
             # API routes
             - id: identity-auth-route
               uri: lb://IDENTITY-SERVICE
@@ -86,38 +93,55 @@ spring:
                 - Path=/identity/**
               filters:
                 - StripPrefix=1
+                - *general-rate-limiter
             - id: admin-route
               uri: lb://IDENTITY-SERVICE
               predicates:
                 - Path=/api/admin/**,/api/admin
+              filters:
+                - *general-rate-limiter
             - id: flashcard-service
               uri: lb://FLASHCARD-SERVICE
               predicates:
                 - Path=/api/flashcards/**,/api/flashcards
+              filters:
+                - *general-rate-limiter
             - id: profile-route
               uri: lb://PROFILE-SERVICE
               predicates:
                 - Path=/api/profiles/**,/api/profiles
+              filters:
+                - *general-rate-limiter
             - id: wallet-route
               uri: lb://WALLET-SERVICE
               predicates:
                 - Path=/api/wallet/**,/api/wallet
+              filters:
+                - *general-rate-limiter
             - id: quiz-route
               uri: lb://QUIZ-SERVICE
               predicates:
                 - Path=/api/quiz/**,/api/quiz,/api/quiz-sets/**,/api/quiz-sets
+              filters:
+                - *general-rate-limiter
             - id: marketplace-route
               uri: lb://MARKETPLACE-SERVICE
               predicates:
                 - Path=/api/marketplace/**,/api/marketplace
+              filters:
+                - *general-rate-limiter
             - id: notification-route
               uri: lb://NOTIFICATION-SERVICE
               predicates:
                 - Path=/api/notifications/**,/api/notifications
+              filters:
+                - *general-rate-limiter
             - id: reward-route
               uri: lb://REWARD-SERVICE
               predicates:
                 - Path=/api/rewards/**,/api/rewards
+              filters:
+                - *general-rate-limiter
           discovery:
             locator:
               enabled: false

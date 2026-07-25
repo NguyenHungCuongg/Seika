@@ -1,59 +1,109 @@
-# Báo cáo Đánh giá Kết quả Load Testing & Chaos Engineering
+# Báo cáo Kết quả Load Testing & Chaos Engineering
 
-**Ngày thực hiện:** 24/07/2026  
-**Công cụ:** Grafana k6, Docker  
-**Mục tiêu:** Kiểm chứng khả năng chịu tải, Rate Limiting và tính năng Circuit Breaker của hệ thống Seika.
+**Ngày thực hiện:** 25/07/2026  
+**Công cụ:** Grafana k6 + Docker (`chaos-test.ps1`)  
+**Mục tiêu:** Kiểm chứng ba cơ chế bảo vệ hệ thống Seika: **Rate Limiting**, **Circuit Breaker**, và **hiệu năng tổng thể** dưới tải cao kết hợp chủ động gây lỗi (Chaos Engineering).
 
 ---
 
-## 1. Tóm tắt kết quả (Executive Summary)
+## 1. Tóm tắt kết quả
 
-Hệ thống thể hiện **hiệu năng xuất sắc** và **khả năng sinh tồn (resilience) tuyệt vời** dưới điều kiện khắc nghiệt. Cơ chế Circuit Breaker hoạt động chính xác 100%, bảo vệ hệ thống khỏi Cascading Failure.
+| Tiêu chí                                        | Kết quả                                                   | Trạng thái |
+| ----------------------------------------------- | --------------------------------------------------------- | ---------- |
+| Circuit Breaker (Resilience4j + Feign Fallback) | 100% request vẫn phản hồi khi Wallet Service bị đóng băng | ✅ ĐẠT     |
+| Rate Limiting (Redis Token Bucket)              | 78.81% request auth bị chặn (1 183/1 501) với HTTP 429    | ✅ ĐẠT     |
+| Hiệu năng tổng thể                              | p95 = 21.14ms, p99 = 68.43ms, error rate = 0.00%          | ✅ ĐẠT     |
+| Thresholds K6                                   | Toàn bộ 3/3 threshold PASSED                              | ✅ ĐẠT     |
 
-Tuy nhiên, bài test Rate Limiting chưa đạt kỳ vọng do có sự sai lệch giữa cấu hình K6 và cấu hình thực tế của API Gateway.
+Toàn bộ **6 457 checks** đều thành công (100.00%), không có check nào thất bại.
 
 ---
 
 ## 2. Phân tích chi tiết
 
-### 2.1. Đánh giá Circuit Breaker (Thành công mỹ mãn)
+### 2.1. Circuit Breaker — Ngăn chặn Cascading Failure
 
-Trong Phase 3 của bài test, `seika-wallet-service` đã bị chủ động đóng băng (pause).
+**Kịch bản Chaos:** Script `chaos-test.ps1` thực hiện 5 phase tuần tự:
 
-- **Kết quả:** Toàn bộ các check liên quan đến Circuit Breaker đạt tỷ lệ Pass 100%:
-  - `✓ Circuit Breaker: API is responsive (no timeout)`
-  - `✓ Circuit Breaker: No Gateway Error (502/503/504)`
-- **Nhận xét:** Hệ thống không hề bị treo. Thay vì bắt người dùng chờ 60 giây timeout, Circuit Breaker đã lập tức ngắt mạch và kích hoạt **Fallback**, giúp thời gian phản hồi (http_req_duration) duy trì ở mức tối đa chỉ **42.63ms**. Gateway hoàn toàn không gặp lỗi 502/504. Đây là một kết quả hoàn hảo cho Chaos Engineering.
+1. **Phase 1:** Khởi động K6 load test ở background.
+2. **Phase 2:** Warm-up 15 giây để hệ thống ổn định.
+3. **Phase 3 — CHAOS INJECTION:** Chạy `docker pause seika-wallet-service-1` để đóng băng hoàn toàn Wallet Service trong 30 giây.
+4. **Phase 4 — RECOVERY:** Unpause Wallet Service, chờ 20 giây để Circuit Breaker chuyển HALF-OPEN → CLOSED.
+5. **Phase 5:** Thu thập kết quả K6.
 
-### 2.2. Đánh giá Độ trễ và Hiệu năng (Hiệu năng cực cao)
+**Kết quả:**
 
-Hệ thống xử lý lượng request lớn với tốc độ đáng kinh ngạc:
+| Check                                             | Kết quả      |
+| ------------------------------------------------- | ------------ |
+| `Circuit Breaker: API is responsive (no timeout)` | ✅ 100% PASS |
+| `Circuit Breaker: No Gateway Error (502/503/504)` | ✅ 100% PASS |
+| `Health: Gateway is responsive`                   | ✅ 100% PASS |
+| `Health: Response time < 2000ms`                  | ✅ 100% PASS |
 
-- `login_duration`: Trung bình **5.51ms**, 95% số request (p95) hoàn thành dưới **7.99ms**.
-- `flashcard_duration`: Trung bình **3.04ms**, 95% số request (p95) hoàn thành dưới **4.53ms**.
-- `http_req_duration` (Toàn bộ API): 95% số request hoàn thành dưới **7.56ms**.
-- **Nhận xét:** Thời gian phản hồi tính bằng một chữ số mili-giây cho thấy các Backend services và API Gateway xử lý logic nội bộ vô cùng tối ưu, không có dấu hiệu bị "thắt cổ chai" (bottleneck) ở CPU hay Database.
-
-_(Lưu ý: Chỉ số `http_req_failed: 85.26%` hiển thị trên màn hình là do kịch bản test cố tình gửi sai mật khẩu. K6 mặc định đếm các mã lỗi 4xx như 401 Unauthorized là failed. Tuy nhiên, custom metric `errors` của chúng ta ghi nhận `0.00%` lỗi, nghĩa là hệ thống phản hồi đúng như thiết kế)._
-
-### 2.3. Đánh giá Rate Limiting (Cần điều chỉnh)
-
-Chỉ số `rate_limited` trả về `0.00%`, dẫn đến thông báo lỗi màu đỏ ở cuối kịch bản: `thresholds on metrics 'rate_limited' have been crossed`.
-
-- **Nguyên nhân:** Có sự bất đồng bộ giữa cấu hình Gateway và Kịch bản Test.
-  - Trong `api-gateway.yaml`, chúng ta đang cấu hình cho phép **50 requests/giây** (`replenishRate: 50`) và tối đa **100 requests burst** (`burstCapacity: 100`).
-  - Trong kịch bản k6 `load-test.js`, tốc độ bắn phá (Brute-force) chỉ được thiết lập là **30 requests/giây** (`rate: 30`).
-- **Hệ quả:** Vì tốc độ tấn công (30) nhỏ hơn sức chịu đựng của hệ thống (50), nên Redis Rate Limiter chưa bị kích hoạt. Không có request nào bị trả về mã 429 (Too Many Requests).
+**Nhận xét:** Khi Wallet Service bị đóng băng, các service phụ thuộc (Identity, Flashcard) không hề bị treo hay timeout 60 giây như trước khi có Circuit Breaker. Thay vào đó, Resilience4j phát hiện lỗi liên tiếp, mở circuit (OPEN state), và kích hoạt **Fallback** — trả về giá trị mặc định ngay lập tức (0ms). Toàn bộ Gateway không gặp bất kỳ lỗi 502/503/504 nào, chứng tỏ hệ thống **hoàn toàn miễn nhiễm** với sự cố ở downstream service.
 
 ---
 
-## 3. Khuyến nghị và Hành động tiếp theo
+### 2.2. Rate Limiting — Chặn Brute-force & API Abuse
 
-1. **Điều chỉnh cấu hình Rate Limiting để test lại:**
-   - **Cách 1:** Mở file `scripts/load-test.js` và tăng `rate` trong scenario `rate_limit_test` từ `30` lên `80` hoặc `150`.
-   - **Cách 2:** Mở file `api-gateway.yaml`, hạ giới hạn `replenishRate` xuống `10` và `burstCapacity` xuống `20`.
-   - _Nên thực hiện cách 2 để bảo vệ hệ thống chặt chẽ hơn._
+**Kịch bản test:** Scenario `rate_limit_test` bắn 50 requests/giây liên tục trong 30 giây vào endpoint `/api/auth/login` (cấu hình giới hạn: 10 token/giây, burst tối đa 20 token).
 
-2. **Giữ nguyên cấu hình Circuit Breaker và Fallback:** Cơ chế hiện tại đang hoạt động cực kỳ hoàn hảo, không cần thay đổi.
+**Kết quả:**
 
-3. **Báo cáo đồ án:** Kết quả này (sau khi fix Rate Limit) rất tuyệt vời để mang đi bảo vệ đồ án/demo cho giáo viên. Thời gian phản hồi 7ms dưới môi trường mô phỏng đứt gãy service là một con số rất ấn tượng.
+| Metric                 | Giá trị                                     |
+| ---------------------- | ------------------------------------------- |
+| `rate_limited`         | **78.81%** (1 183 / 1 501 requests bị chặn) |
+| `rate_limit_429_total` | **1 183 requests** trả về HTTP 429          |
+| Threshold `rate>0`     | ✅ PASSED                                   |
+
+**Nhận xét:** Với tốc độ 50 req/s, giỏ token (capacity 20, replenish 10/s) cung cấp tối đa ~30 token trong giây đầu tiên, sau đó chỉ còn 10 token/giây. Kết quả **78.81% bị chặn** hoàn toàn khớp với lý thuyết Token Bucket: chỉ ~21% request đi qua (≈10 token/s ÷ 50 req/s), phần còn lại bị Gateway từ chối với HTTP 429 Too Many Requests. Rate Limiter hoạt động chính xác như thiết kế.
+
+---
+
+### 2.3. Hiệu năng tổng thể
+
+**Tải:** 3 scenarios chạy song song — 50 VUs normal load, 50 VUs rate limit test, 5 VUs circuit breaker probe — tổng cộng **3 979 HTTP requests** trong ~1m40s.
+
+| Metric               | avg     | med     | p90     | p95     | p99     | max      |
+| -------------------- | ------- | ------- | ------- | ------- | ------- | -------- |
+| `http_req_duration`  | 9.91ms  | 6.46ms  | 15.82ms | 21.14ms | 68.43ms | 307.39ms |
+| `flashcard_duration` | 4.57ms  | 4.04ms  | 6.19ms  | 7.92ms  | —       | 39.75ms  |
+| `login_duration`     | 12.30ms | 10.44ms | 17.44ms | 20.94ms | —       | 195.11ms |
+
+**Thresholds:**
+
+| Threshold               | Điều kiện  | Giá trị thực tế | Kết quả |
+| ----------------------- | ---------- | --------------- | ------- |
+| `errors`                | rate < 10% | **0.00%**       | ✅ PASS |
+| `http_req_duration p95` | < 1000ms   | **21.14ms**     | ✅ PASS |
+| `http_req_duration p99` | < 2000ms   | **68.43ms**     | ✅ PASS |
+
+**Nhận xét:** Thời gian phản hồi p95 chỉ **21ms** — nhanh gấp **47 lần** so với ngưỡng cho phép (1000ms). Custom metric `errors` ghi nhận **0.00%** lỗi, nghĩa là hệ thống xử lý đúng 100% logic nghiệp vụ. Chỉ số `http_req_failed: 87.55%` hiển thị cao là do K6 mặc định đếm HTTP 4xx (401 Unauthorized từ đăng nhập sai, 429 từ rate limit) là "failed" — đây là hành vi đúng và mong đợi của kịch bản test, không phải lỗi hệ thống.
+
+---
+
+### 2.4. Checks tổng hợp
+
+Tất cả 9 checks trong kịch bản K6 đều đạt 100%:
+
+| Check                                             | Kết quả |
+| ------------------------------------------------- | ------- |
+| ✓ Health: Gateway is responsive                   | 100%    |
+| ✓ Health: Response time < 2000ms                  | 100%    |
+| ✓ Circuit Breaker: API is responsive (no timeout) | 100%    |
+| ✓ Circuit Breaker: No Gateway Error (502/503/504) | 100%    |
+| ✓ Login: Response time < 1000ms                   | 100%    |
+| ✓ Login: Valid HTTP status (non-5xx)              | 100%    |
+| ✓ Flashcard: Response time < 500ms                | 100%    |
+| ✓ Flashcard: No Gateway Error (502/503/504)       | 100%    |
+| ✓ Rate Limit: Received 200/400/401 or 429         | 100%    |
+
+---
+
+## 3. Kết luận
+
+Ba cơ chế bảo vệ đã được kiểm chứng thành công trong điều kiện vừa chịu tải cao vừa bị chủ động gây lỗi:
+
+1. **Circuit Breaker + Fallback:** Ngắt mạch thành công khi Wallet Service sập, hệ thống tiếp tục phục vụ bình thường, tự phục hồi khi service trở lại.
+2. **Rate Limiting (Token Bucket + Redis):** Chặn chính xác 78.81% request vượt ngưỡng tại API Gateway, bảo vệ backend khỏi brute-force và API abuse.
+3. **Hiệu năng:** Thời gian phản hồi p95 dưới 22ms dưới tải ~39 req/s với 95 VUs đồng thời, không có lỗi hệ thống nào phát sinh.

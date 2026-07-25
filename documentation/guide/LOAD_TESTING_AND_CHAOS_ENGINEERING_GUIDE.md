@@ -84,14 +84,14 @@ Mô phỏng người dùng thực: đăng nhập → xem Flashcard.
 
 ### Scenario 2: `rate_limit_test` — Kiểm chứng Rate Limiting
 
-Bắn **30 requests/giây** liên tục vào `POST /api/auth/login` trong 30 giây.
+Bắn **50 requests/giây** liên tục vào `POST /api/auth/login` trong 30 giây.
 
 Cấu hình Rate Limit hiện tại cho `/api/auth/**`:
 
 - `replenishRate`: 10 token/giây
 - `burstCapacity`: 20 token
 
-**Kỳ vọng:** Khoảng 20 request đầu thành công (burst), sau đó ~66% request bị trả về **HTTP 429 Too Many Requests**.
+**Kỳ vọng:** Khoảng 20 request đầu thành công (burst), sau đó khoảng 80% request bị trả về **HTTP 429 Too Many Requests**.
 
 **Metric kiểm chứng:**
 

@@ -160,21 +160,19 @@ public class RateLimiterConfig {
 
 File: `src/config-service/src/main/resources/configs/api-gateway.yaml`
 
-**Global Default Filter** — áp dụng cho tất cả routes:
+**General route filter** — áp dụng cho từng route thông thường bằng YAML anchor:
 
 ```yaml
-spring:
-  cloud:
-    gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: 50 # 50 token/giây
-            redis-rate-limiter.burstCapacity: 100 # Tối đa 100 token trong bucket
-            key-resolver: "#{@userKeyResolver}" # Giới hạn theo user/IP
+filters:
+  - &general-rate-limiter
+    name: RequestRateLimiter
+    args:
+      redis-rate-limiter.replenishRate: 50
+      redis-rate-limiter.burstCapacity: 100
+      key-resolver: "#{@userKeyResolver}"
 ```
 
-**Route-specific Filter** — siết chặt hơn cho `/api/auth/**`:
+Các route thông thường tái sử dụng filter bằng `- *general-rate-limiter`. Route `/api/auth/**` không dùng alias này mà chỉ khai báo rate limiter riêng:
 
 ```yaml
 - id: identity-auth-route
@@ -184,10 +182,14 @@ spring:
   filters:
     - name: RequestRateLimiter
       args:
-        redis-rate-limiter.replenishRate: 10 # 10 token/giây
-        redis-rate-limiter.burstCapacity: 20 # Burst tối đa 20
-        key-resolver: "#{@ipKeyResolver}" # Theo IP (chưa đăng nhập)
+        redis-rate-limiter.replenishRate: 10
+        redis-rate-limiter.burstCapacity: 20
+        key-resolver: "#{@ipKeyResolver}"
 ```
+
+**Không kết hợp `default-filters` với rate limiter riêng trên cùng route.** Spring Cloud Gateway nối filter mặc định và filter của route thay vì override theo tên. Hai `RequestRateLimiter` trên `identity-auth-route` sẽ cùng tiêu thụ bucket Redis của route, làm quota thực tế giảm một nửa và tạo header `X-RateLimit-*` lặp.
+
+Overlay `api-gateway-dev.yaml` chỉ chứa khác biệt dành cho môi trường dev (mức log). Không sao chép mảng `routes` vào overlay, vì danh sách theo profile có thể ghi đè route base và làm mất filter bảo mật.
 
 **Ý nghĩa thực tế:**
 
@@ -405,10 +407,10 @@ Wallet Service sập
 
 ### API Gateway — Rate Limiting
 
-| File                                                | Hành động     | Mô tả                                                                          |
-| --------------------------------------------------- | ------------- | ------------------------------------------------------------------------------ |
-| `src/api-gateway/.../config/RateLimiterConfig.java` | **Tạo mới**   | 2 KeyResolver beans (theo user/IP)                                             |
-| `src/config-service/.../configs/api-gateway.yaml`   | **Chỉnh sửa** | Thêm `default-filters` (50 req/s) + route filter cho `/api/auth/**` (10 req/s) |
+| File                                                | Hành động     | Mô tả                                                                     |
+| --------------------------------------------------- | ------------- | ------------------------------------------------------------------------- |
+| `src/api-gateway/.../config/RateLimiterConfig.java` | **Tạo mới**   | 2 KeyResolver beans (theo user/IP)                                        |
+| `src/config-service/.../configs/api-gateway.yaml`   | **Chỉnh sửa** | Một rate limiter/route: 50/100 cho route thường, 10/20 cho `/api/auth/**` |
 
 ### Identity Service — Circuit Breaker
 

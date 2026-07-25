@@ -33,7 +33,7 @@ export const options = {
     // Scenario 2: Kiểm tra Rate Limiting (Bắn nhanh liên tục vào /api/auth/**)
     rate_limit_test: {
       executor: "constant-arrival-rate",
-      rate: 30, // 30 requests/giây (vượt ngưỡng 10 req/s cho auth)
+      rate: 50, // 50 requests/giây (vượt ngưỡng 10 req/s cho auth)
       timeUnit: "1s",
       duration: "30s",
       preAllocatedVUs: 50,
