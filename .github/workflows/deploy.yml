@@ -12,22 +12,43 @@ jobs:
       - name: Checkout mã nguồn mới nhất
         uses: actions/checkout@v5
 
-      - name: Khởi động hệ thống Microservices bằng Docker Compose Production
+      - name: Cau hinh moi truong
         run: |
-          echo "Bat dau xu ly cau hinh moi truong..."
-          
-          # Fix git dubious ownership warning
           git config --global --add safe.directory "${{ github.workspace }}"
-          
-          # Copy .env from local workspace
           cp "F:\Microservices Projects\Seika\.env" .
-          
-          echo "Da dong bo file .env thanh cong! Bat dau build he thong..."
-          
-          # Disable default attestations to remove git warnings, and limit parallel builds to prevent OOM
-          $env:BUILDX_NO_DEFAULT_ATTESTATIONS=1
-          $env:COMPOSE_PARALLEL_LIMIT=1
-          
-          docker compose -f docker-compose.prod.yml up -d --build
-          
+          echo "Da dong bo file .env thanh cong!"
+
+      - name: Build images tuan tu (tranh OOM)
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: "1"
+          COMPOSE_DOCKER_CLI_BUILD: "1"
+          DOCKER_BUILDKIT: "1"
+        run: |
+          $services = @(
+            "eureka",
+            "config-service",
+            "identity-service",
+            "profile-service",
+            "wallet-service",
+            "marketplace-service",
+            "notification-service",
+            "flashcard-service",
+            "quiz-service",
+            "reward-service",
+            "api-gateway"
+          )
+          foreach ($svc in $services) {
+            echo "========== Building $svc =========="
+            docker compose -f docker-compose.prod.yml build $svc
+            if ($LASTEXITCODE -ne 0) {
+              echo "FAILED to build $svc"
+              exit 1
+            }
+            echo "========== Done $svc =========="
+          }
+          echo "Tat ca images da build thanh cong!"
+
+      - name: Khoi dong he thong Microservices
+        run: |
+          docker compose -f docker-compose.prod.yml up -d
           echo "He thong da duoc cap nhat"
