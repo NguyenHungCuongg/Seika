@@ -93,7 +93,7 @@ through the Gateway.
 
 <p align="center">
   <img
-    src="./src/web-app/src/assets/diagrams/seika-microservices-architecture.png"
+    src="./public/images/seika-microservices-architecture.png"
     alt="Seika microservices system architecture"
     width="100%"
   />
@@ -129,14 +129,6 @@ depth inside the business services.
 | **Downstream identity**    | The Gateway preserves the Bearer token and derives `X-User-Name`, `X-User-Id`, and `X-User-Roles` from verified claims. Servlet services validate the JWT again and build their own Spring Security context. |
 | **Authorization**          | Endpoint and method-level rules enforce role-based access with `STUDENT`, `TEACHER`, and `ADMIN` authorities.                                                                                                |
 | **Edge protection**        | CORS allowlists are configurable, auth routes use IP-based throttling, and authenticated routes use per-user rate limiting with an IP fallback.                                                              |
-
-<p align="center">
-  <img
-    src="./src/web-app/src/assets/diagrams/seika-security-request-flow.png"
-    alt="Seika microservices system architecture"
-    width="100%"
-  />
-</p>
 
 Business services should remain private in production. Directly exposing them
 would bypass the Gateway's centralized revocation check, and user-context headers
